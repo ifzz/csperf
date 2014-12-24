@@ -27,7 +27,6 @@ csperf_config_display_long_help()
     printf(" -n <num blcks>        # Number of data blocks to send. Default 1000\n");
     printf(" -e                    # Echo client data. Server echos client data\n");
     printf(" -r <repeat count>     # Repeat the test these many times. Setting -1 means run forever\n");
-    printf(" -m <percentage>       # Mark interval. Specifies after how many data blocks, the server responds with mark\n");
     printf(" -l <logfile>          # Logfile to write to. Default writes to csperf_xxx.txt xxx = client or server\n");
 }
 
