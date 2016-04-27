@@ -5,6 +5,7 @@ include_directories(
         "${PROJECT_SOURCE_DIR}")
 
 set(LIBEVENT_DIR  ${PROJECT_SOURCE_DIR}/packages/libevent-2.0.21-stable)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 
 include(ExternalProject)
 # Build libevent
