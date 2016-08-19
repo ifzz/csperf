@@ -25,7 +25,10 @@ FILE(GLOB csperf_sources ${PROJECT_SOURCE_DIR}/src/*.c)
 FILE(GLOB csperf_headers ${PROJECT_SOURCE_DIR}/src/*.h)
 
 add_executable(csperf ${csperf_sources})
-target_link_libraries(csperf libevent rt)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    target_link_libraries(csperf libevent rt)
+else ()
+    target_link_libraries(csperf libevent)
+endif ()
 
-install(TARGETS csperf RUNTIME DESTINATION ${TOP_BUILD_DIR}/bin)
 install(TARGETS csperf RUNTIME DESTINATION /usr/local/bin)

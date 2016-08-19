@@ -1,4 +1,9 @@
 build
 csperf_*
 packages/libevent-2.0.21-stable/autom4te.cache/
+packages/libevent-2.0.21-stable/Makefile.in
+packages/libevent-2.0.21-stable/aclocal.m4
+packages/libevent-2.0.21-stable/include/Makefile.in
+packages/libevent-2.0.21-stable/sample/Makefile.in
+packages/libevent-2.0.21-stable/test/Makefile.in
 *cscope*
