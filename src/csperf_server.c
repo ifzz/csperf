@@ -108,11 +108,11 @@ csperf_server_init(csperf_config_t *config)
         return NULL;
     }
 
-    /* Set up all commands. We also do this once. 
+    /* Set up all commands. We also do this once.
      * Not everything we set up might be used */
     for (i = 0; i < CS_CMD_MAX; i++) {
-        if (!(server->command_pdu_table[i] = 
-            csperf_network_create_pdu(CS_MSG_COMMAND, i, 
+        if (!(server->command_pdu_table[i] =
+            csperf_network_create_pdu(CS_MSG_COMMAND, i,
                 CS_COMMAND_PDU_LEN))) {
             free(server);
             return NULL;
@@ -141,7 +141,7 @@ csperf_server_send_mark_resp_command(csperf_server_t *server, uint8_t flags)
             command_pdu_table[CS_CMD_MARK_RESP]->message);
 
     command->blocks_to_receive = server->config->total_data_blocks;
-    command->echo_timestamp = command->echoreply_timestamp = 
+    command->echo_timestamp = command->echoreply_timestamp =
         server->client_last_received_timestamp;
     server->transfer_flags = command->flags = flags;
     server->stats.total_commands_sent++;
@@ -155,8 +155,8 @@ csperf_server_send_mark_resp_command(csperf_server_t *server, uint8_t flags)
     server->show_stats = 1;
     csperf_server_reset_stats(server);
 
-    return bufferevent_write(server->buff_event, 
-        server->command_pdu_table[CS_CMD_MARK_RESP], 
+    return bufferevent_write(server->buff_event,
+        server->command_pdu_table[CS_CMD_MARK_RESP],
         CS_HEADER_PDU_LEN + CS_COMMAND_PDU_LEN);
 }
 
@@ -202,8 +202,8 @@ csperf_server_process_command(csperf_server_t *server, struct evbuffer *buf)
     case CS_CMD_MARK:
         assert(command.blocks_to_receive);
         server->transfer_flags = command.flags;
-        server->config->total_data_blocks = command.blocks_to_receive; 
-        server->client_last_received_timestamp = command.echo_timestamp; 
+        server->config->total_data_blocks = command.blocks_to_receive;
+        server->client_last_received_timestamp = command.echo_timestamp;
         csperf_network_get_time(server->stats.mark_received_time);
         break;
     default:
@@ -226,13 +226,13 @@ csperf_accept_error(struct evconnlistener *listener, void *ctx)
 }
 
 /* Called when there is new stuff to be read */
-void 
+void
 csperf_server_readcb(struct bufferevent *bev, void *ptr)
 {
     struct evbuffer *input_buf;
     int message_type;
     csperf_server_t *server = (csperf_server_t *) ptr;
-    uint32_t len = 0; 
+    uint32_t len = 0;
 
     /* Get buffer from input queue */
     do {
@@ -256,7 +256,7 @@ csperf_server_readcb(struct bufferevent *bev, void *ptr)
 }
 
 /* Handle events that we get on a connection */
-void 
+void
 csperf_server_eventcb(struct bufferevent *bev, short events, void *ctx)
 {
     csperf_server_t *server = ctx;
@@ -265,7 +265,7 @@ csperf_server_eventcb(struct bufferevent *bev, short events, void *ctx)
     if (events & BEV_EVENT_ERROR) {
         fprintf(stderr, "Error: %s\n", evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
         finished = 1;
-    } 
+    }
 
     if (events & BEV_EVENT_EOF) {
         finished = 1;
@@ -287,12 +287,13 @@ csperf_server_accept(struct evconnlistener *listener,
 
     /* Currently we can handle just one client. Create an array
        of buffer events when we need to support more */
-    server->buff_event = bufferevent_socket_new(base, fd, 
+    server->buff_event = bufferevent_socket_new(base, fd,
             BEV_OPT_CLOSE_ON_FREE);
 
     /* We got a new connection! Set up a bufferevent for it. */
     /* Set callbacks */
-    bufferevent_setcb(server->buff_event, csperf_server_readcb, 
+    evutil_make_socket_nonblocking(bufferevent_getfd(server->buff_event));
+    bufferevent_setcb(server->buff_event, csperf_server_readcb,
             NULL, csperf_server_eventcb, server);
     bufferevent_enable(server->buff_event, EV_READ|EV_WRITE);
     bufferevent_setwatermark(server->buff_event, EV_READ, CS_HEADER_PDU_LEN, 0);
@@ -310,7 +311,7 @@ csperf_server_configure(csperf_server_t *server)
     sin.sin_addr.s_addr = htonl(0);
     sin.sin_port = htons(server->config->server_port);
 
-    listener = evconnlistener_new_bind(server->evbase, 
+    listener = evconnlistener_new_bind(server->evbase,
         csperf_server_accept, server,
         LEV_OPT_CLOSE_ON_FREE|LEV_OPT_REUSEABLE, -1,
         (struct sockaddr*)&sin, sizeof(sin));
@@ -318,13 +319,14 @@ csperf_server_configure(csperf_server_t *server)
     if (!listener) {
         return -1;
     }
+    evutil_make_socket_nonblocking(evconnlistener_get_fd(listener));
     evconnlistener_set_error_cb(listener, csperf_accept_error);
-    fprintf(stdout, "Server: Listening on %s:%d\n", 
+    fprintf(stdout, "Server: Listening on %s:%d\n",
             inet_ntoa(sin.sin_addr), server->config->server_port);
     return 0;
 }
 
-int 
+int
 csperf_server_run(csperf_config_t *config)
 {
     int error = 0;
@@ -332,7 +334,17 @@ csperf_server_run(csperf_config_t *config)
     struct event     *signal_event = NULL;
 
     if (!(server = csperf_server_init(config))) {
+        csperf_config_cleanup(config);
         fprintf(stderr, "Failed to init server\n");
+        return -1;
+    }
+
+    /* Setup signal handler for SIGINT */
+    signal_event = evsignal_new(server->evbase, SIGINT,
+            csperf_server_signal_cb, server);
+
+    if (!signal_event || ((event_add(signal_event, NULL) < 0))) {
+        csperf_server_shutdown(server);
         return -1;
     }
 
@@ -342,15 +354,7 @@ csperf_server_run(csperf_config_t *config)
         return error;
     }
 
-    /* Setup signal handler for SIGINT */ 
-    signal_event = evsignal_new(server->evbase, SIGINT, 
-            csperf_server_signal_cb, server);
-
-    if (!signal_event || ((event_add(signal_event, NULL) < 0))) {
-        csperf_server_shutdown(server);
-        return -1;
-    }
-    server->second_timer = evtimer_new(server->evbase, 
+    server->second_timer = evtimer_new(server->evbase,
         csperf_server_timer_cb, server);
     csperf_server_timer_update(server);
 

@@ -22,6 +22,7 @@ csperf_config_display_long_help()
     printf("Usage: csperf [-s|-c host] [options]\n");
     printf(" -c <hostname>         # Run as client and connect to hostname\n");
     printf(" -s                    # Run as server\n");
+    printf(" -C <num-clients>      # Total number of clients\n");
     printf(" -p <port>             # Server port to list to. Default 5001\n");
     printf(" -B <data block size>  # Size of the data segment. Default 1KB\n");
     printf(" -n <num blcks>        # Number of data blocks to send. Default 1000\n");
@@ -31,7 +32,7 @@ csperf_config_display_long_help()
 }
 
 int
-csperf_config_parse_arguments(csperf_config_t *config, 
+csperf_config_parse_arguments(csperf_config_t *config,
         int argc, char **argv)
 {
     int rget_opt = 0;
@@ -44,6 +45,7 @@ csperf_config_parse_arguments(csperf_config_t *config,
     {
         {"client", required_argument, NULL, 'c'},
         {"server", no_argument, NULL, 's'},
+        {"total-clients", required_argument, NULL, 'C'},
         {"port", required_argument, NULL, 'p'},
         {"blocksize", required_argument, NULL, 'B'},
         {"numblocks", required_argument, NULL, 'n'},
@@ -59,7 +61,7 @@ csperf_config_parse_arguments(csperf_config_t *config,
         {NULL, 0, NULL, 0}
     };
 
-    while((rget_opt = getopt_long(argc, argv, "c:sp:B:n:em:r:l:h",
+    while((rget_opt = getopt_long(argc, argv, "c:sp:C:B:n:em:r:l:h",
                     longopts, NULL)) != -1) {
         switch (rget_opt) {
         case 'c':
@@ -68,6 +70,9 @@ csperf_config_parse_arguments(csperf_config_t *config,
             break;
         case 's':
             config->role = CS_SERVER;
+            break;
+        case 'C':
+            config->total_clients = atoi(optarg);
             break;
         case 'p':
             config->server_port = atoi(optarg);
@@ -79,10 +84,10 @@ csperf_config_parse_arguments(csperf_config_t *config,
             config->total_data_blocks = atoi(optarg);
             break;
         case 'e':
-            config->transfer_mode = CS_FLAG_DUPLEX; 
+            config->transfer_mode = CS_FLAG_DUPLEX;
             break;
         case 'r':
-            config->repeat_count = atoi(optarg); 
+            config->repeat_count = atoi(optarg);
             break;
         case 'm':
             config->mark_interval_percentage = atoi(optarg);
@@ -131,12 +136,15 @@ csperf_config_parse_arguments(csperf_config_t *config,
 void
 csperf_config_set_defaults(csperf_config_t *config)
 {
-    config->transfer_mode = CS_FLAG_HALF_DUPLEX; 
+    config->transfer_mode = CS_FLAG_HALF_DUPLEX;
     config->data_block_size = DEFAULT_DATA_BLOCKLEN;
     config->server_port = DEFAULT_SERVER_PORT;
-    config->total_data_blocks = DEFAULT_DATA_BLOCKS;  
+    config->total_data_blocks = DEFAULT_DATA_BLOCKS;
     config->mark_interval_percentage = 100;
     config->repeat_count = 1;
+    config->total_clients = 1;
+    config->clients_per_sec = 0;
+    config->concurrent_clients = 0;
 
     config->client_output_file = strdup(DEFAULT_CLIENT_OUTPUT_FILE);
     config->server_output_file = strdup(DEFAULT_SERVER_OUTPUT_FILE);

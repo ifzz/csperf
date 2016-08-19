@@ -8,17 +8,17 @@
 #include "csperf_network.h"
 
 /* Create asn message with header.
- * message_info argument is used if the 
+ * message_info argument is used if the
  * message type is command */
 asn_message_pdu*
-csperf_network_create_pdu(uint8_t message_type, 
+csperf_network_create_pdu(uint8_t message_type,
     uint8_t message_info, uint32_t message_len)
 {
     int i;
     asn_message_pdu  *header = NULL;
     asn_command_pdu command;
 
-    /* If the message_len is huge (> 1GB), we might need 
+    /* If the message_len is huge (> 1GB), we might need
      * to use mmap */
     header = calloc(1, message_len + CS_HEADER_PDU_LEN);
 
@@ -26,14 +26,14 @@ csperf_network_create_pdu(uint8_t message_type,
         return NULL;
     }
 
-    header->total_len = CS_HEADER_PDU_LEN + message_len; 
+    header->total_len = CS_HEADER_PDU_LEN + message_len;
     header->magic = CS_MAGIC;
     header->message_type = message_type;
 
     if (message_type == CS_MSG_DATA) {
         /* Randomize the data */
         for (i = 0; i < message_len; i++) {
-            header->message[i] = rand(); 
+            header->message[i] = rand();
         }
     } else {
         memset(&command, 0, sizeof(asn_command_pdu));
@@ -48,7 +48,7 @@ csperf_network_create_pdu(uint8_t message_type,
 /* Usually called when the pdu is read from the socket.
    Returns whether pdu is command or data.
    If the complete message is not received, returns 0 */
-int 
+int
 csperf_network_get_pdu_type(struct evbuffer *buf, uint32_t *len)
 {
     asn_message_pdu     header;
@@ -57,7 +57,7 @@ csperf_network_get_pdu_type(struct evbuffer *buf, uint32_t *len)
 
     if (buffer_len < CS_HEADER_PDU_LEN) {
         /* The size field hasn't arrived. */
-        return 0; 
+        return 0;
     }
 
     /* We use evbuffer_copyout here so that messgae will stay
@@ -66,8 +66,8 @@ csperf_network_get_pdu_type(struct evbuffer *buf, uint32_t *len)
     total_len = header.total_len;
 
     if (buffer_len < total_len) {
-        /* The pdu hasn't arrived */ 
-        return 0; 
+        /* The pdu hasn't arrived */
+        return 0;
     }
     *len = header.total_len;
 
@@ -85,7 +85,7 @@ csperf_network_get_pdu_type(struct evbuffer *buf, uint32_t *len)
 }
 
 /* Get time in millisecond */
-uint64_t 
+uint64_t
 csperf_network_get_time(char *buf)
 {
     char            fmt[64];

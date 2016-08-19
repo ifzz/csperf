@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "csperf_defaults.h" 
-#include "csperf_client.h" 
-#include "csperf_server.h" 
+#include "csperf_defaults.h"
+#include "csperf_client.h"
+#include "csperf_server.h"
 
 /* Kickstart things */
 int
@@ -16,7 +16,7 @@ csperf_main_start_test(csperf_config_t *config)
     }
 }
 
-int 
+int
 main(int argc, char **argv)
 {
     csperf_config_t *config = NULL;
@@ -33,7 +33,6 @@ main(int argc, char **argv)
     }
 
     if ((error = csperf_main_start_test(config))) {
-        csperf_config_cleanup(config);
         printf("Failed to start the test\n");
         exit(1);
     }
