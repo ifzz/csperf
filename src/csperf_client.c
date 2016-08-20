@@ -11,6 +11,7 @@
 #include "csperf_client.h"
 #include "csperf_network.h"
 #include "csperf_common.h"
+#include "log.h"
 
 /* Shutdown and cleanup the client manager */
 static void
@@ -117,7 +118,7 @@ csperf_client_timer_cb(int fd, short kind, void *userp)
     /* Check if we need to stop */
     if ((client->cli_mgr->config->client_runtime) &&
             (++timer >= client->cli_mgr->config->client_runtime)) {
-        fprintf(stdout, "Client: Timeout!\n");
+        zlog_info(log_get_cat(), "Client: Timeout!\n");
         csperf_client_shutdown(client);
         return;
     }
@@ -185,7 +186,7 @@ csperf_client_manager_init(csperf_config_t *config)
 
     if (config->client_output_file) {
         if (!(cli_mgr->output_file = fopen(config->client_output_file, "w"))) {
-            fprintf(stderr, "Failed to create %s file\n", config->client_output_file);
+            zlog_warn(log_get_cat(), "Failed to create %s file\n", config->client_output_file);
             free(client);
             return NULL;
         }
@@ -259,10 +260,10 @@ csperf_client_start(csperf_client_t *client)
 {
     if (csperf_client_send_mark_command(client,
         client->cli_mgr->config->transfer_mode) < 0) {
-        fprintf(stderr, "Error writing command");
+        zlog_warn(log_get_cat(), "Error writing command");
     }
     if (csperf_client_send_data(client) < 0) {
-        fprintf(stderr, "Write error\n");
+        zlog_warn(log_get_cat(), "Write error\n");
     }
 }
 
@@ -313,7 +314,7 @@ csperf_client_process_command(csperf_client_t *client, struct evbuffer *buf)
         }
         break;
     default:
-        fprintf(stderr, "Unexpected command\n");
+        zlog_warn(log_get_cat(), "Unexpected command\n");
         return -1;
     }
     return 0;
@@ -367,7 +368,7 @@ csperf_client_eventcb(struct bufferevent *bev, short events, void *ctx)
     /* Connected to the server */
     if (events & BEV_EVENT_CONNECTED) {
         client->state = CLIENT_CONNECTED;
-        fprintf(stdout, "Client connected to server..Please wait\n");
+        zlog_info(log_get_cat(), "Client connected to server..Please wait\n");
 
         /* Start the transfer */
         csperf_client_start(client);
@@ -376,6 +377,7 @@ csperf_client_eventcb(struct bufferevent *bev, short events, void *ctx)
             finished = 1;
         }
         if (events & BEV_EVENT_ERROR) {
+            zlog_warn(log_get_cat(), "Error: %s\n", evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
             fprintf(stderr, "Error: %s\n", evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
             finished = 1;
         }
@@ -418,7 +420,7 @@ csperf_client_manager_configure(csperf_client_manager_t *cli_mgr)
         client->second_timer = evtimer_new(cli_mgr->evbase,
             csperf_client_timer_cb, client);
         csperf_client_timer_update(client);
-        fprintf(stdout, "Client: Connecting to: %s:%d\n",
+        zlog_info(log_get_cat(), "Client: Connecting to: %s:%d\n",
             client->cli_mgr->config->server_hostname, client->cli_mgr->config->server_port);
         cli_mgr->active_connections++;
     }
@@ -434,7 +436,7 @@ csperf_client_run(csperf_config_t *config)
 
     if (!(cli_mgr = csperf_client_manager_init(config))) {
         csperf_config_cleanup(config);
-        fprintf(stderr, "Failed to init client\n");
+        zlog_warn(log_get_cat(), "Failed to init client\n");
         return -1;
     }
 

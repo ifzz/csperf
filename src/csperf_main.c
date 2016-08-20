@@ -4,6 +4,7 @@
 #include "csperf_defaults.h"
 #include "csperf_client.h"
 #include "csperf_server.h"
+#include "log.h"
 
 /* Kickstart things */
 int
@@ -26,6 +27,14 @@ main(int argc, char **argv)
         printf("Failed to init config\n");
         exit(1);
     }
+
+    /* Initalize our logging module. */
+    if ((error = log_init())) {
+        fprintf(stderr, "Failed to init logging module. error: %d\n", error);
+        exit(1);
+    }
+    zlog_info(log_get_cat(), "Initialized logging module");
+
 
     if ((error = csperf_config_parse_arguments(config, argc, argv))) {
         csperf_config_cleanup(config);

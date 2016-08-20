@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <event2/buffer.h>
 
+#define MAX_ALLOWED_CLIENTS 16000
 #define CS_MAGIC 0xaa
 #define CS_HEADER_PDU_LEN (sizeof(asn_message_pdu)) 
 #define CS_COMMAND_PDU_LEN (sizeof(asn_command_pdu)) 

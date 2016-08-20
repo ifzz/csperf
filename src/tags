@@ -1,0 +1,228 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+CLIENT_CONNECTED	csperf_client.h	/^    CLIENT_CONNECTED,$/;"	e	enum:__anon4
+CLIENT_INIT	csperf_client.h	/^    CLIENT_INIT = 0,$/;"	e	enum:__anon4
+CSPERF_LOG_CATEGORY	common/log.h	24;"	d
+CS_CLIENT	csperf_defaults.h	/^    CS_CLIENT,$/;"	e	enum:asn_role
+CS_CMD_MARK	csperf_network.h	/^    CS_CMD_MARK,$/;"	e	enum:asn_command_type
+CS_CMD_MARK_RESP	csperf_network.h	/^    CS_CMD_MARK_RESP,$/;"	e	enum:asn_command_type
+CS_CMD_MAX	csperf_network.h	/^    CS_CMD_MAX,$/;"	e	enum:asn_command_type
+CS_COMMAND_PDU_LEN	csperf_network.h	10;"	d
+CS_FLAG_DUPLEX	csperf_network.h	13;"	d
+CS_FLAG_HALF_DUPLEX	csperf_network.h	14;"	d
+CS_HEADER_PDU_LEN	csperf_network.h	9;"	d
+CS_MAGIC	csperf_network.h	8;"	d
+CS_MSG_COMMAND	csperf_network.h	/^    CS_MSG_COMMAND = 1,$/;"	e	enum:asn_message_type
+CS_MSG_DATA	csperf_network.h	/^    CS_MSG_DATA$/;"	e	enum:asn_message_type
+CS_SERVER	csperf_defaults.h	/^    CS_SERVER$/;"	e	enum:asn_role
+DEFAULT_CLIENT_OUTPUT_FILE	csperf_defaults.h	13;"	d
+DEFAULT_DATA_BLOCKLEN	csperf_defaults.h	10;"	d
+DEFAULT_DATA_BLOCKS	csperf_defaults.h	12;"	d
+DEFAULT_SERVER_OUTPUT_FILE	csperf_defaults.h	14;"	d
+DEFAULT_SERVER_PORT	csperf_defaults.h	11;"	d
+LOG_CONFIG_FILE	common/log.h	23;"	d
+MAX_ALLOWED_CLIENTS	csperf_network.h	7;"	d
+MAX_CLIENT_RUNTIME	csperf_defaults.h	17;"	d
+PI_IMH_BUF_SIZE	common/pi_dll.h	49;"	d
+PI_IP_HDR_BUF_SIZE	common/pi_dll.h	50;"	d
+PI_TCP_HDR_BUF_SIZE	common/pi_dll.h	51;"	d
+__CS_PERF_CLIENT_RUN_H	csperf_client.h	2;"	d
+__CS_PERF_COMMON_H	csperf_common.h	2;"	d
+__CS_PERF_CONFIG_H	csperf_config.h	2;"	d
+__CS_PERF_DEFAULTS_H	csperf_defaults.h	2;"	d
+__CS_PERF_NETWORK_H	csperf_network.h	2;"	d
+__CS_PERF_SERVER_H	csperf_server.h	2;"	d
+__CS_PERF_STATS_H	csperf_stats.h	2;"	d
+__LOG_H	common/log.h	19;"	d
+__PI_DLL_H	common/pi_dll.h	19;"	d
+__anon1::magic	csperf_network.h	/^    uint8_t  magic;$/;"	m	struct:__anon1	access:public
+__anon1::message	csperf_network.h	/^    uint8_t  message[];$/;"	m	struct:__anon1	access:public
+__anon1::message_type	csperf_network.h	/^    uint8_t  message_type; $/;"	m	struct:__anon1	access:public
+__anon1::reserved	csperf_network.h	/^    uint8_t  reserved[2];$/;"	m	struct:__anon1	access:public
+__anon1::total_len	csperf_network.h	/^    uint32_t total_len;$/;"	m	struct:__anon1	access:public
+__anon2::blocks_to_receive	csperf_network.h	/^    uint32_t       blocks_to_receive;$/;"	m	struct:__anon2	access:public
+__anon2::command_type	csperf_network.h	/^    uint8_t        command_type;$/;"	m	struct:__anon2	access:public
+__anon2::echo_timestamp	csperf_network.h	/^    uint64_t       echo_timestamp;$/;"	m	struct:__anon2	access:public
+__anon2::echoreply_timestamp	csperf_network.h	/^    uint64_t       echoreply_timestamp;$/;"	m	struct:__anon2	access:public
+__anon2::flags	csperf_network.h	/^    uint8_t        flags;$/;"	m	struct:__anon2	access:public
+__anon2::resvrd	csperf_network.h	/^    uint8_t        resvrd[2];$/;"	m	struct:__anon2	access:public
+__anon3::mark_received_time	csperf_stats.h	/^    char      mark_received_time[100];$/;"	m	struct:__anon3	access:public
+__anon3::mark_sent_time	csperf_stats.h	/^    char      mark_sent_time[100];$/;"	m	struct:__anon3	access:public
+__anon3::time_to_process_data	csperf_stats.h	/^    uint64_t  time_to_process_data;$/;"	m	struct:__anon3	access:public
+__anon3::total_blocks_received	csperf_stats.h	/^    uint64_t  total_blocks_received;$/;"	m	struct:__anon3	access:public
+__anon3::total_blocks_sent	csperf_stats.h	/^    uint64_t  total_blocks_sent;$/;"	m	struct:__anon3	access:public
+__anon3::total_bytes_received	csperf_stats.h	/^    uint64_t  total_bytes_received;$/;"	m	struct:__anon3	access:public
+__anon3::total_bytes_sent	csperf_stats.h	/^    uint64_t  total_bytes_sent;$/;"	m	struct:__anon3	access:public
+__anon3::total_commands_received	csperf_stats.h	/^    uint64_t  total_commands_received;$/;"	m	struct:__anon3	access:public
+__anon3::total_commands_sent	csperf_stats.h	/^    uint64_t  total_commands_sent;$/;"	m	struct:__anon3	access:public
+active_connections	csperf_client.h	/^    uint32_t             active_connections;$/;"	m	struct:csperf_client_manager_s	access:public
+ansperf_stats_display	csperf_stats.h	/^void ansperf_stats_display(csperf_stats_t *stats, FILE *fd);$/;"	p	signature:(csperf_stats_t *stats, FILE *fd)
+asn_command_pdu	csperf_network.h	/^} asn_command_pdu;$/;"	t	typeref:struct:__anon2
+asn_command_type	csperf_network.h	/^enum asn_command_type {$/;"	g
+asn_message_pdu	csperf_network.h	/^} asn_message_pdu;$/;"	t	typeref:struct:__anon1
+asn_message_type	csperf_network.h	/^enum asn_message_type {$/;"	g
+asn_role	csperf_defaults.h	/^enum asn_role {$/;"	g
+blocks_to_receive	csperf_network.h	/^    uint32_t       blocks_to_receive;$/;"	m	struct:__anon2	access:public
+brl_dll	common/pi_dll.h	/^    pi_dll_t        brl_dll;$/;"	m	struct:pi_brlink_s	access:public
+brl_ref	common/pi_dll.h	/^    void            *brl_ref;$/;"	m	struct:pi_brlink_s	access:public
+buff_event	csperf_client.h	/^    struct bufferevent       *buff_event;$/;"	m	struct:csperf_client_s	typeref:struct:csperf_client_s::bufferevent	access:public
+buff_event	csperf_server.h	/^    struct bufferevent *buff_event;$/;"	m	struct:csperf_client_ctx_s	typeref:struct:csperf_client_ctx_s::bufferevent	access:public
+cli_mgr	csperf_client.h	/^    csperf_client_manager_t  *cli_mgr;$/;"	m	struct:csperf_client_s	access:public
+client_last_received_timestamp	csperf_server.h	/^    uint64_t            client_last_received_timestamp;$/;"	m	struct:csperf_client_ctx_s	access:public
+client_output_file	csperf_config.h	/^    char         *client_output_file;$/;"	m	struct:csperf_config_s	access:public
+client_runtime	csperf_config.h	/^    uint16_t     client_runtime;    \/* Total duration of the test. -t *\/$/;"	m	struct:csperf_config_s	access:public
+client_table	csperf_client.h	/^    csperf_client_t      client_table[1];$/;"	m	struct:csperf_client_manager_s	access:public
+clients_per_sec	csperf_config.h	/^    uint32_t     clients_per_sec;   \/* Clients that needs to connect to the server every second *\/$/;"	m	struct:csperf_config_s	access:public
+command_pdu_table	csperf_client.h	/^    asn_message_pdu          *command_pdu_table[CS_CMD_MAX];$/;"	m	struct:csperf_client_s	access:public
+command_pdu_table	csperf_server.h	/^    asn_message_pdu    *command_pdu_table[CS_CMD_MAX];$/;"	m	struct:csperf_client_ctx_s	access:public
+command_type	csperf_network.h	/^    uint8_t        command_type;$/;"	m	struct:__anon2	access:public
+concurrent_clients	csperf_config.h	/^    uint32_t     concurrent_clients;\/* Concurrent clients that needs to be connected to the server *\/$/;"	m	struct:csperf_config_s	access:public
+config	csperf_client.h	/^    csperf_config_t      *config;$/;"	m	struct:csperf_client_manager_s	access:public
+config	csperf_server.h	/^    csperf_config_t     *config;$/;"	m	struct:csperf_server_s	access:public
+csperf_client_ctx_s	csperf_server.h	/^struct csperf_client_ctx_s {$/;"	s
+csperf_client_ctx_s::buff_event	csperf_server.h	/^    struct bufferevent *buff_event;$/;"	m	struct:csperf_client_ctx_s	typeref:struct:csperf_client_ctx_s::bufferevent	access:public
+csperf_client_ctx_s::client_last_received_timestamp	csperf_server.h	/^    uint64_t            client_last_received_timestamp;$/;"	m	struct:csperf_client_ctx_s	access:public
+csperf_client_ctx_s::command_pdu_table	csperf_server.h	/^    asn_message_pdu    *command_pdu_table[CS_CMD_MAX];$/;"	m	struct:csperf_client_ctx_s	access:public
+csperf_client_ctx_s::ctx_link	csperf_server.h	/^    pi_dll_t           ctx_link;$/;"	m	struct:csperf_client_ctx_s	access:public
+csperf_client_ctx_s::second_timer	csperf_server.h	/^    struct event       *second_timer;$/;"	m	struct:csperf_client_ctx_s	typeref:struct:csperf_client_ctx_s::event	access:public
+csperf_client_ctx_s::server	csperf_server.h	/^    csperf_server_t    *server;$/;"	m	struct:csperf_client_ctx_s	access:public
+csperf_client_ctx_s::show_stats	csperf_server.h	/^    uint8_t            show_stats;$/;"	m	struct:csperf_client_ctx_s	access:public
+csperf_client_ctx_s::stats	csperf_server.h	/^    csperf_stats_t      stats;$/;"	m	struct:csperf_client_ctx_s	access:public
+csperf_client_ctx_s::transfer_flags	csperf_server.h	/^    uint8_t            transfer_flags;$/;"	m	struct:csperf_client_ctx_s	access:public
+csperf_client_ctx_t	csperf_server.h	/^typedef struct csperf_client_ctx_s csperf_client_ctx_t;$/;"	t	typeref:struct:csperf_client_ctx_s
+csperf_client_manager_s	csperf_client.h	/^struct csperf_client_manager_s$/;"	s
+csperf_client_manager_s::active_connections	csperf_client.h	/^    uint32_t             active_connections;$/;"	m	struct:csperf_client_manager_s	access:public
+csperf_client_manager_s::client_table	csperf_client.h	/^    csperf_client_t      client_table[1];$/;"	m	struct:csperf_client_manager_s	access:public
+csperf_client_manager_s::config	csperf_client.h	/^    csperf_config_t      *config;$/;"	m	struct:csperf_client_manager_s	access:public
+csperf_client_manager_s::evbase	csperf_client.h	/^    struct event_base    *evbase;$/;"	m	struct:csperf_client_manager_s	typeref:struct:csperf_client_manager_s::event_base	access:public
+csperf_client_manager_s::output_file	csperf_client.h	/^    FILE                 *output_file;$/;"	m	struct:csperf_client_manager_s	access:public
+csperf_client_manager_t	csperf_client.h	/^typedef struct csperf_client_manager_s csperf_client_manager_t;$/;"	t	typeref:struct:csperf_client_manager_s
+csperf_client_run	csperf_client.h	/^int csperf_client_run();$/;"	p	signature:()
+csperf_client_s	csperf_client.h	/^typedef struct csperf_client_s$/;"	s
+csperf_client_s::buff_event	csperf_client.h	/^    struct bufferevent       *buff_event;$/;"	m	struct:csperf_client_s	typeref:struct:csperf_client_s::bufferevent	access:public
+csperf_client_s::cli_mgr	csperf_client.h	/^    csperf_client_manager_t  *cli_mgr;$/;"	m	struct:csperf_client_s	access:public
+csperf_client_s::command_pdu_table	csperf_client.h	/^    asn_message_pdu          *command_pdu_table[CS_CMD_MAX];$/;"	m	struct:csperf_client_s	access:public
+csperf_client_s::data_pdu	csperf_client.h	/^    asn_message_pdu          *data_pdu;$/;"	m	struct:csperf_client_s	access:public
+csperf_client_s::repeat_count	csperf_client.h	/^    int                      repeat_count;$/;"	m	struct:csperf_client_s	access:public
+csperf_client_s::second_timer	csperf_client.h	/^    struct event             *second_timer;$/;"	m	struct:csperf_client_s	typeref:struct:csperf_client_s::event	access:public
+csperf_client_s::state	csperf_client.h	/^    int                      state;$/;"	m	struct:csperf_client_s	access:public
+csperf_client_s::stats	csperf_client.h	/^    csperf_stats_t            stats;$/;"	m	struct:csperf_client_s	access:public
+csperf_client_s::transfer_flags	csperf_client.h	/^    uint8_t                  transfer_flags;$/;"	m	struct:csperf_client_s	access:public
+csperf_client_states	csperf_client.h	/^} csperf_client_states;$/;"	v	typeref:enum:__anon4
+csperf_client_t	csperf_client.h	/^} csperf_client_t;$/;"	t	typeref:struct:csperf_client_s
+csperf_common_calculate_size	csperf_common.h	/^void csperf_common_calculate_size(char *result, uint64_t size);$/;"	p	signature:(char *result, uint64_t size)
+csperf_config_cleanup	csperf_config.h	/^void csperf_config_cleanup(csperf_config_t* config);$/;"	p	signature:(csperf_config_t* config)
+csperf_config_init	csperf_config.h	/^csperf_config_t* csperf_config_init();$/;"	p	signature:()
+csperf_config_parse_arguments	csperf_config.h	/^int csperf_config_parse_arguments(csperf_config_t *config,$/;"	p	signature:(csperf_config_t *config, int argc, char **argv)
+csperf_config_s	csperf_config.h	/^typedef struct csperf_config_s {$/;"	s
+csperf_config_s::client_output_file	csperf_config.h	/^    char         *client_output_file;$/;"	m	struct:csperf_config_s	access:public
+csperf_config_s::client_runtime	csperf_config.h	/^    uint16_t     client_runtime;    \/* Total duration of the test. -t *\/$/;"	m	struct:csperf_config_s	access:public
+csperf_config_s::clients_per_sec	csperf_config.h	/^    uint32_t     clients_per_sec;   \/* Clients that needs to connect to the server every second *\/$/;"	m	struct:csperf_config_s	access:public
+csperf_config_s::concurrent_clients	csperf_config.h	/^    uint32_t     concurrent_clients;\/* Concurrent clients that needs to be connected to the server *\/$/;"	m	struct:csperf_config_s	access:public
+csperf_config_s::data_block_size	csperf_config.h	/^    uint32_t     data_block_size;   \/* Block size of each data segment *\/$/;"	m	struct:csperf_config_s	access:public
+csperf_config_s::data_size	csperf_config.h	/^    uint64_t     data_size;         \/* Total size of data to send *\/$/;"	m	struct:csperf_config_s	access:public
+csperf_config_s::mark_interval	csperf_config.h	/^    uint16_t     mark_interval;$/;"	m	struct:csperf_config_s	access:public
+csperf_config_s::mark_interval_percentage	csperf_config.h	/^    uint8_t      mark_interval_percentage;$/;"	m	struct:csperf_config_s	access:public
+csperf_config_s::repeat_count	csperf_config.h	/^    int          repeat_count;$/;"	m	struct:csperf_config_s	access:public
+csperf_config_s::role	csperf_config.h	/^    uint8_t      role; \/* Client or server *\/$/;"	m	struct:csperf_config_s	access:public
+csperf_config_s::server_hostname	csperf_config.h	/^    char         *server_hostname; \/* -c option *\/$/;"	m	struct:csperf_config_s	access:public
+csperf_config_s::server_output_file	csperf_config.h	/^    char         *server_output_file;$/;"	m	struct:csperf_config_s	access:public
+csperf_config_s::server_port	csperf_config.h	/^    uint16_t     server_port;$/;"	m	struct:csperf_config_s	access:public
+csperf_config_s::total_clients	csperf_config.h	/^    uint32_t     total_clients;     \/* Total number of clients that need to connect to the server *\/$/;"	m	struct:csperf_config_s	access:public
+csperf_config_s::total_data_blocks	csperf_config.h	/^    uint32_t     total_data_blocks; \/* Total blocks to be sent *\/$/;"	m	struct:csperf_config_s	access:public
+csperf_config_s::transfer_mode	csperf_config.h	/^    uint8_t      transfer_mode;$/;"	m	struct:csperf_config_s	access:public
+csperf_config_t	csperf_config.h	/^}csperf_config_t;$/;"	t	typeref:struct:csperf_config_s
+csperf_network_create_pdu	csperf_network.h	/^asn_message_pdu* csperf_network_create_pdu(uint8_t message_type,$/;"	p	signature:(uint8_t message_type, uint8_t message_info, uint32_t message_len)
+csperf_network_get_pdu_type	csperf_network.h	/^int csperf_network_get_pdu_type(struct evbuffer *buf, uint32_t *len);$/;"	p	signature:(struct evbuffer *buf, uint32_t *len)
+csperf_network_get_time	csperf_network.h	/^uint64_t csperf_network_get_time(char *buf);$/;"	p	signature:(char *buf)
+csperf_server_run	csperf_server.h	/^int csperf_server_run(csperf_config_t *config);$/;"	p	signature:(csperf_config_t *config)
+csperf_server_s	csperf_server.h	/^typedef struct csperf_server_s {$/;"	s
+csperf_server_s::config	csperf_server.h	/^    csperf_config_t     *config;$/;"	m	struct:csperf_server_s	access:public
+csperf_server_s::ctx_base	csperf_server.h	/^    csperf_client_ctx_t *ctx_base;$/;"	m	struct:csperf_server_s	access:public
+csperf_server_s::ctx_free_list	csperf_server.h	/^    pi_dll_t            ctx_free_list;$/;"	m	struct:csperf_server_s	access:public
+csperf_server_s::ctx_inuse_list	csperf_server.h	/^    pi_dll_t            ctx_inuse_list;$/;"	m	struct:csperf_server_s	access:public
+csperf_server_s::evbase	csperf_server.h	/^    struct event_base   *evbase;$/;"	m	struct:csperf_server_s	typeref:struct:csperf_server_s::event_base	access:public
+csperf_server_s::output_file	csperf_server.h	/^    FILE                *output_file;$/;"	m	struct:csperf_server_s	access:public
+csperf_server_t	csperf_server.h	/^} csperf_server_t;$/;"	t	typeref:struct:csperf_server_s
+csperf_stats_t	csperf_stats.h	/^} csperf_stats_t;$/;"	t	typeref:struct:__anon3
+ctx_base	csperf_server.h	/^    csperf_client_ctx_t *ctx_base;$/;"	m	struct:csperf_server_s	access:public
+ctx_free_list	csperf_server.h	/^    pi_dll_t            ctx_free_list;$/;"	m	struct:csperf_server_s	access:public
+ctx_inuse_list	csperf_server.h	/^    pi_dll_t            ctx_inuse_list;$/;"	m	struct:csperf_server_s	access:public
+ctx_link	csperf_server.h	/^    pi_dll_t           ctx_link;$/;"	m	struct:csperf_client_ctx_s	access:public
+data_block_size	csperf_config.h	/^    uint32_t     data_block_size;   \/* Block size of each data segment *\/$/;"	m	struct:csperf_config_s	access:public
+data_pdu	csperf_client.h	/^    asn_message_pdu          *data_pdu;$/;"	m	struct:csperf_client_s	access:public
+data_size	csperf_config.h	/^    uint64_t     data_size;         \/* Total size of data to send *\/$/;"	m	struct:csperf_config_s	access:public
+dll_head	common/pi_dll.h	30;"	d
+dll_next	common/pi_dll.h	/^    pi_dll_t        *dll_next;$/;"	m	struct:pi_dll_s	access:public
+dll_prev	common/pi_dll.h	/^    pi_dll_t        *dll_prev;$/;"	m	struct:pi_dll_s	access:public
+dll_tail	common/pi_dll.h	31;"	d
+echo_timestamp	csperf_network.h	/^    uint64_t       echo_timestamp;$/;"	m	struct:__anon2	access:public
+echoreply_timestamp	csperf_network.h	/^    uint64_t       echoreply_timestamp;$/;"	m	struct:__anon2	access:public
+evbase	csperf_client.h	/^    struct event_base    *evbase;$/;"	m	struct:csperf_client_manager_s	typeref:struct:csperf_client_manager_s::event_base	access:public
+evbase	csperf_server.h	/^    struct event_base   *evbase;$/;"	m	struct:csperf_server_s	typeref:struct:csperf_server_s::event_base	access:public
+flags	csperf_network.h	/^    uint8_t        flags;$/;"	m	struct:__anon2	access:public
+log_get_cat	common/log.h	/^zlog_category_t* log_get_cat();$/;"	p	signature:()
+log_init	common/log.h	/^int log_init();$/;"	p	signature:()
+magic	csperf_network.h	/^    uint8_t  magic;$/;"	m	struct:__anon1	access:public
+mark_interval	csperf_config.h	/^    uint16_t     mark_interval;$/;"	m	struct:csperf_config_s	access:public
+mark_interval_percentage	csperf_config.h	/^    uint8_t      mark_interval_percentage;$/;"	m	struct:csperf_config_s	access:public
+mark_received_time	csperf_stats.h	/^    char      mark_received_time[100];$/;"	m	struct:__anon3	access:public
+mark_sent_time	csperf_stats.h	/^    char      mark_sent_time[100];$/;"	m	struct:__anon3	access:public
+message	csperf_network.h	/^    uint8_t  message[];$/;"	m	struct:__anon1	access:public
+message_type	csperf_network.h	/^    uint8_t  message_type; $/;"	m	struct:__anon1	access:public
+output_file	csperf_client.h	/^    FILE                 *output_file;$/;"	m	struct:csperf_client_manager_s	access:public
+output_file	csperf_server.h	/^    FILE                *output_file;$/;"	m	struct:csperf_server_s	access:public
+pi_brlink_s	common/pi_dll.h	/^typedef struct pi_brlink_s {$/;"	s
+pi_brlink_s::brl_dll	common/pi_dll.h	/^    pi_dll_t        brl_dll;$/;"	m	struct:pi_brlink_s	access:public
+pi_brlink_s::brl_ref	common/pi_dll.h	/^    void            *brl_ref;$/;"	m	struct:pi_brlink_s	access:public
+pi_brlink_t	common/pi_dll.h	/^} pi_brlink_t;$/;"	t	typeref:struct:pi_brlink_s
+pi_dll_dequeue_head	common/pi_dll.h	/^pi_dll_t *pi_dll_dequeue_head(pi_dll_t *list);$/;"	p	signature:(pi_dll_t *list)
+pi_dll_dequeue_tail	common/pi_dll.h	/^pi_dll_t *pi_dll_dequeue_tail(pi_dll_t *list);$/;"	p	signature:(pi_dll_t *list)
+pi_dll_empty	common/pi_dll.h	33;"	d
+pi_dll_init	common/pi_dll.h	/^void pi_dll_init(pi_dll_t *list);$/;"	p	signature:(pi_dll_t *list)
+pi_dll_insert_following	common/pi_dll.h	/^void pi_dll_insert_following(pi_dll_t *ref, pi_dll_t *entry);$/;"	p	signature:(pi_dll_t *ref, pi_dll_t *entry)
+pi_dll_insert_head	common/pi_dll.h	/^void pi_dll_insert_head(pi_dll_t *list, pi_dll_t *entry);$/;"	p	signature:(pi_dll_t *list, pi_dll_t *entry)
+pi_dll_insert_preceeding	common/pi_dll.h	/^void pi_dll_insert_preceeding(pi_dll_t *ref, pi_dll_t *entry);$/;"	p	signature:(pi_dll_t *ref, pi_dll_t *entry)
+pi_dll_insert_tail	common/pi_dll.h	/^void pi_dll_insert_tail(pi_dll_t *list, pi_dll_t *entry);$/;"	p	signature:(pi_dll_t *list, pi_dll_t *entry)
+pi_dll_move_list	common/pi_dll.h	/^void pi_dll_move_list(pi_dll_t *dst, pi_dll_t *src);$/;"	p	signature:(pi_dll_t *dst, pi_dll_t *src)
+pi_dll_next	common/pi_dll.h	/^pi_dll_t *pi_dll_next(pi_dll_t *entry);$/;"	p	signature:(pi_dll_t *entry)
+pi_dll_prev	common/pi_dll.h	/^pi_dll_t *pi_dll_prev(pi_dll_t *entry);$/;"	p	signature:(pi_dll_t *entry)
+pi_dll_queued	common/pi_dll.h	/^int pi_dll_queued(pi_dll_t *entry);$/;"	p	signature:(pi_dll_t *entry)
+pi_dll_queued_m	common/pi_dll.h	34;"	d
+pi_dll_s	common/pi_dll.h	/^struct pi_dll_s {$/;"	s
+pi_dll_s::dll_next	common/pi_dll.h	/^    pi_dll_t        *dll_next;$/;"	m	struct:pi_dll_s	access:public
+pi_dll_s::dll_prev	common/pi_dll.h	/^    pi_dll_t        *dll_prev;$/;"	m	struct:pi_dll_s	access:public
+pi_dll_t	common/pi_dll.h	/^typedef struct pi_dll_s pi_dll_t;$/;"	t	typeref:struct:pi_dll_s
+pi_dll_unlink	common/pi_dll.h	/^void pi_dll_unlink(pi_dll_t *entry);$/;"	p	signature:(pi_dll_t *entry)
+repeat_count	csperf_client.h	/^    int                      repeat_count;$/;"	m	struct:csperf_client_s	access:public
+repeat_count	csperf_config.h	/^    int          repeat_count;$/;"	m	struct:csperf_config_s	access:public
+reserved	csperf_network.h	/^    uint8_t  reserved[2];$/;"	m	struct:__anon1	access:public
+resvrd	csperf_network.h	/^    uint8_t        resvrd[2];$/;"	m	struct:__anon2	access:public
+role	csperf_config.h	/^    uint8_t      role; \/* Client or server *\/$/;"	m	struct:csperf_config_s	access:public
+second_timer	csperf_client.h	/^    struct event             *second_timer;$/;"	m	struct:csperf_client_s	typeref:struct:csperf_client_s::event	access:public
+second_timer	csperf_server.h	/^    struct event       *second_timer;$/;"	m	struct:csperf_client_ctx_s	typeref:struct:csperf_client_ctx_s::event	access:public
+server	csperf_server.h	/^    csperf_server_t    *server;$/;"	m	struct:csperf_client_ctx_s	access:public
+server_hostname	csperf_config.h	/^    char         *server_hostname; \/* -c option *\/$/;"	m	struct:csperf_config_s	access:public
+server_output_file	csperf_config.h	/^    char         *server_output_file;$/;"	m	struct:csperf_config_s	access:public
+server_port	csperf_config.h	/^    uint16_t     server_port;$/;"	m	struct:csperf_config_s	access:public
+show_stats	csperf_server.h	/^    uint8_t            show_stats;$/;"	m	struct:csperf_client_ctx_s	access:public
+state	csperf_client.h	/^    int                      state;$/;"	m	struct:csperf_client_s	access:public
+stats	csperf_client.h	/^    csperf_stats_t            stats;$/;"	m	struct:csperf_client_s	access:public
+stats	csperf_server.h	/^    csperf_stats_t      stats;$/;"	m	struct:csperf_client_ctx_s	access:public
+time_to_process_data	csperf_stats.h	/^    uint64_t  time_to_process_data;$/;"	m	struct:__anon3	access:public
+total_blocks_received	csperf_stats.h	/^    uint64_t  total_blocks_received;$/;"	m	struct:__anon3	access:public
+total_blocks_sent	csperf_stats.h	/^    uint64_t  total_blocks_sent;$/;"	m	struct:__anon3	access:public
+total_bytes_received	csperf_stats.h	/^    uint64_t  total_bytes_received;$/;"	m	struct:__anon3	access:public
+total_bytes_sent	csperf_stats.h	/^    uint64_t  total_bytes_sent;$/;"	m	struct:__anon3	access:public
+total_clients	csperf_config.h	/^    uint32_t     total_clients;     \/* Total number of clients that need to connect to the server *\/$/;"	m	struct:csperf_config_s	access:public
+total_commands_received	csperf_stats.h	/^    uint64_t  total_commands_received;$/;"	m	struct:__anon3	access:public
+total_commands_sent	csperf_stats.h	/^    uint64_t  total_commands_sent;$/;"	m	struct:__anon3	access:public
+total_data_blocks	csperf_config.h	/^    uint32_t     total_data_blocks; \/* Total blocks to be sent *\/$/;"	m	struct:csperf_config_s	access:public
+total_len	csperf_network.h	/^    uint32_t total_len;$/;"	m	struct:__anon1	access:public
+transfer_flags	csperf_client.h	/^    uint8_t                  transfer_flags;$/;"	m	struct:csperf_client_s	access:public
+transfer_flags	csperf_server.h	/^    uint8_t            transfer_flags;$/;"	m	struct:csperf_client_ctx_s	access:public
+transfer_mode	csperf_config.h	/^    uint8_t      transfer_mode;$/;"	m	struct:csperf_config_s	access:public

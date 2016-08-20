@@ -1,5 +1,6 @@
 #ifndef __CS_PERF_DEFAULTS_H
 #define __CS_PERF_DEFAULTS_H
+
 enum asn_role {
     CS_CLIENT,
     CS_SERVER
