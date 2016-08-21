@@ -1,3 +1,5 @@
+TOPDIR := $(shell pwd)
+TOPRPMDIR := $(TOPDIR)/build/rpmbuild
 all: 
 	mkdir -p build && cd build && \
 	cmake .. && make && cd -
@@ -9,8 +11,24 @@ debug:
 install:
 	make -C build install
 
+.PHONY:release
+release: all
+	mkdir -p build/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+	rpmbuild --quiet -bb $(TOPDIR)/scripts/csperf.spec --define '_topdir $(TOPRPMDIR)'\
+		--define '_mypath $(TOPDIR)'\
+		--define '_builddir $(TOPRPMDIR)/BUILD'\
+		--define '_specdir $(TOPDIR)/SPECS'\
+		--define '_rpmdir $(TOPRPMDIR)/RPMS'\
+		--define '_sourcedir $(TOPRPMDIR)/SOURCES'\
+		--define '_specdir $(TOPRPMDIR)/SPECS'\
+		--define '_srcrpmdir $(TOPRPMDIR)/SRPMS'\
+		$(TOPDIR)/scripts/csperf.spec && \
+		cp $(TOPRPMDIR)/RPMS/*/*.rpm $(TOPDIR)/build/
+
 clean:
 	rm -rf build/src 
-
-distclean:
-	rm -rf build 
+	rm -rf build; rm -rf core* 
+	rm -rf /usr/local/share/man/man1/csperf.1
+	rm -rf /etc/csperf/log.conf
+	rm -rf /usr/local/bin/csperf
+	rm -rf /tmp/csperf_info.log
