@@ -34,8 +34,9 @@ csperf_client_manager_shutdown(csperf_client_manager_t *cli_mgr)
         if (client->second_timer) {
             event_free(client->second_timer);
         }
-        if (client->command_pdu_table) {
-            for(j = 0; j < CS_CMD_MAX; j++) {
+
+        for(j = 0; j < CS_CMD_MAX; j++) {
+            if (client->command_pdu_table[j]) {
                 free(client->command_pdu_table[j]);
             }
         }
@@ -76,8 +77,9 @@ csperf_client_shutdown(csperf_client_t *client)
         event_free(client->second_timer);
         client->second_timer = NULL;
     }
-    if (client->command_pdu_table) {
-        for(i = 0; i < CS_CMD_MAX; i++) {
+
+    for(i = 0; i < CS_CMD_MAX; i++) {
+        if (client->command_pdu_table[i]) {
             free(client->command_pdu_table[i]);
             client->command_pdu_table[i] = NULL;
         }

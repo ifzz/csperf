@@ -38,8 +38,8 @@ csperf_server_shutdown(csperf_server_t *server)
             event_free(cli_ctx->second_timer);
         }
 
-        if (cli_ctx->command_pdu_table) {
-            for(i = 0; i < CS_CMD_MAX; i++) {
+        for(i = 0; i < CS_CMD_MAX; i++) {
+            if (cli_ctx->command_pdu_table[i]) {
                 free(cli_ctx->command_pdu_table[i]);
             }
         }
@@ -80,8 +80,8 @@ csperf_server_ctx_cli_shutdown(csperf_client_ctx_t *cli_ctx)
         cli_ctx->second_timer = NULL;
     }
 
-    if (cli_ctx->command_pdu_table) {
-        for(i = 0; i < CS_CMD_MAX; i++) {
+    for(i = 0; i < CS_CMD_MAX; i++) {
+        if (cli_ctx->command_pdu_table[i]) {
             free(cli_ctx->command_pdu_table[i]);
             cli_ctx->command_pdu_table[i] = NULL;
         }
