@@ -85,6 +85,10 @@ csperf_server_ctx_cli_shutdown(csperf_client_ctx_t *cli_ctx)
             cli_ctx->command_pdu_table[i] = NULL;
         }
     }
+    pi_dll_unlink(&cli_ctx->ctx_link);
+    pi_dll_insert_tail(&cli_ctx->server->ctx_free_list,
+            &cli_ctx->ctx_link);
+
     zlog_info(log_get_cat(), "%s: Ctx(%"PRIu64"): Cleaning up connection on the server\n",
             __FUNCTION__, cli_ctx->ctx_id);
 }
@@ -204,7 +208,7 @@ csperf_server_get_cli_ctx(csperf_server_t *server)
         cli_ctx->second_timer = evtimer_new(server->evbase,
             csperf_server_timer_cb, cli_ctx);
         csperf_server_timer_update(cli_ctx);
-        pi_dll_insert_tail(&server->ctx_inuse_list, &cli_ctx->ctx_link); 
+        pi_dll_insert_tail(&server->ctx_inuse_list, &cli_ctx->ctx_link);
         return cli_ctx;
     }
     return NULL;
@@ -344,8 +348,8 @@ csperf_server_eventcb(struct bufferevent *bev, short events, void *ctx)
 
     if (events & BEV_EVENT_ERROR) {
         zlog_info(log_get_cat(), "%s: Ctx(%"PRIu64"): Socket error: %s\n",
-                __FUNCTION__, cli_ctx->ctx_id, 
-                 evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
+            __FUNCTION__, cli_ctx->ctx_id,
+             evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
         finished = 1;
     }
 
