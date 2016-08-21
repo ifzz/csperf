@@ -17,6 +17,7 @@ typedef struct csperf_client_manager_s csperf_client_manager_t;
 
 typedef struct csperf_client_s
 {
+    uint32_t                 client_id;
     uint8_t                  transfer_flags;
     int                      state;
     int                      repeat_count;

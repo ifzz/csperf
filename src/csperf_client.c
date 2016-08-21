@@ -144,6 +144,7 @@ csperf_client_manager_init(csperf_config_t *config)
     int i, j;
     csperf_client_manager_t *cli_mgr;
     csperf_client_t *client;
+    uint32_t client_id_count = 0;
 
     cli_mgr = (csperf_client_manager_t *) calloc (1, sizeof(csperf_client_manager_t) +
             config->total_clients * sizeof(csperf_client_t));
@@ -181,6 +182,7 @@ csperf_client_manager_init(csperf_config_t *config)
                 return NULL;
             }
         }
+        client->client_id = ++client_id_count;
         client->repeat_count = 1;
         client->cli_mgr = cli_mgr;
         client->cli_mgr->config = config;
