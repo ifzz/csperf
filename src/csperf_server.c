@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <assert.h>
 #include <errno.h>
+#include <inttypes.h>
 
 #include "csperf_server.h"
 #include "csperf_network.h"
@@ -23,8 +24,6 @@ csperf_server_shutdown(csperf_server_t *server)
     if (!server) {
         return;
     }
-
-    zlog_info(log_get_cat(), "Shuttdown server\n");
 
     while ((entry = pi_dll_dequeue_head(&server->ctx_inuse_list))) {
         cli_ctx = (csperf_client_ctx_t *) entry;
@@ -55,6 +54,7 @@ csperf_server_shutdown(csperf_server_t *server)
         free(server->ctx_base);
     }
     free(server);
+    zlog_info(log_get_cat(), "%s: Successfully shutdown server\n", __FUNCTION__);
 }
 
 /* Shutdown the client context */
@@ -62,7 +62,6 @@ static void
 csperf_server_ctx_cli_shutdown(csperf_client_ctx_t *cli_ctx)
 {
     int i;
-    zlog_debug(log_get_cat(), "%s\n", __FUNCTION__);
 
     if (!cli_ctx) {
         return;
@@ -86,13 +85,14 @@ csperf_server_ctx_cli_shutdown(csperf_client_ctx_t *cli_ctx)
             cli_ctx->command_pdu_table[i] = NULL;
         }
     }
+    zlog_info(log_get_cat(), "%s: Ctx(%"PRIu64"): Cleaning up connection on the server\n",
+            __FUNCTION__, cli_ctx->ctx_id);
 }
 
 /* Display the stats first and then clear out the stats */
 static void
 csperf_server_reset_stats(csperf_client_ctx_t *cli_ctx)
 {
-    zlog_debug(log_get_cat(), "%s\n", __FUNCTION__);
     if (cli_ctx->show_stats) {
         ansperf_stats_display(&cli_ctx->stats, cli_ctx->server->output_file);
 
@@ -106,7 +106,6 @@ csperf_server_reset_stats(csperf_client_ctx_t *cli_ctx)
 static int
 csperf_server_timer_update(csperf_client_ctx_t *cli_ctx)
 {
-    zlog_debug(log_get_cat(), "%s\n", __FUNCTION__);
     struct timeval timeout;
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
@@ -120,7 +119,6 @@ csperf_server_timer_update(csperf_client_ctx_t *cli_ctx)
 static void
 csperf_server_timer_cb(int fd, short kind, void *userp)
 {
-    zlog_debug(log_get_cat(), "%s\n", __FUNCTION__);
     csperf_client_ctx_t *cli_ctx = (csperf_client_ctx_t *)userp;
 
     /* Display current stats */
@@ -141,6 +139,7 @@ csperf_server_init(csperf_config_t *config)
 {
     int i;
     csperf_server_t *server;
+    uint64_t ctx_id_counter = 0;
 
     server = (csperf_server_t *) calloc (1, sizeof(csperf_server_t));
     if (!server) {
@@ -173,11 +172,13 @@ csperf_server_init(csperf_config_t *config)
 
     for (i = 0; i < MAX_ALLOWED_CLIENTS; i++) {
         cli_ctx->server = server;
+        cli_ctx->ctx_id = ++ctx_id_counter;
         pi_dll_init(&cli_ctx->ctx_link);
         pi_dll_insert_tail(&server->ctx_free_list, &cli_ctx->ctx_link);
         cli_ctx++;
     }
 
+    zlog_info(log_get_cat(), "%s: Initialised server\n", __FUNCTION__);
     return server;
 }
 
@@ -187,7 +188,6 @@ csperf_server_get_cli_ctx(csperf_server_t *server)
     pi_dll_t *entry;
     csperf_client_ctx_t *cli_ctx;
     int i;
-    zlog_debug(log_get_cat(), "%s\n", __FUNCTION__);
 
     if ((entry = pi_dll_dequeue_head(&server->ctx_free_list))) {
         cli_ctx = (csperf_client_ctx_t *) entry;
@@ -214,7 +214,6 @@ csperf_server_get_cli_ctx(csperf_server_t *server)
 static int
 csperf_server_send_mark_resp_command(csperf_client_ctx_t *cli_ctx, uint8_t flags)
 {
-    zlog_debug(log_get_cat(), "%s\n", __FUNCTION__);
     asn_command_pdu *command;
 
     command = (asn_command_pdu *)(&cli_ctx->
@@ -244,7 +243,6 @@ static int
 csperf_server_process_data(csperf_client_ctx_t *cli_ctx, struct evbuffer *buf,
         uint32_t len)
 {
-    zlog_debug(log_get_cat(), "%s\n", __FUNCTION__);
     cli_ctx->stats.total_bytes_received += len;
     cli_ctx->stats.total_blocks_received++;
 
@@ -272,7 +270,6 @@ csperf_server_process_data(csperf_client_ctx_t *cli_ctx, struct evbuffer *buf,
 static int
 csperf_server_process_command(csperf_client_ctx_t *cli_ctx, struct evbuffer *buf)
 {
-    zlog_debug(log_get_cat(), "%s\n", __FUNCTION__);
     asn_command_pdu command = { 0 };
 
     /* Remove header */
@@ -289,7 +286,8 @@ csperf_server_process_command(csperf_client_ctx_t *cli_ctx, struct evbuffer *buf
         csperf_network_get_time(cli_ctx->stats.mark_received_time);
         break;
     default:
-        zlog_warn(log_get_cat(), "Unexpected command\n");
+        zlog_warn(log_get_cat(), "%s: Ctx(%"PRIu64"): Unexpected command received: %d\n",
+                __FUNCTION__, cli_ctx->ctx_id, command.command_type);
         return -1;
     }
     cli_ctx->stats.total_commands_received++;
@@ -299,10 +297,9 @@ csperf_server_process_command(csperf_client_ctx_t *cli_ctx, struct evbuffer *buf
 static void
 csperf_accept_error(struct evconnlistener *listener, void *ctx)
 {
-    zlog_debug(log_get_cat(), "%s\n", __FUNCTION__);
     int err = EVUTIL_SOCKET_ERROR();
 
-    zlog_warn(log_get_cat(), "Server:Got an error %d (%s) on the listener. "
+    zlog_warn(log_get_cat(), "Server: Got an error %d (%s) on the listener. "
         "Shutting down.\n", err, evutil_socket_error_to_string(err));
 
     csperf_server_shutdown((csperf_server_t *)ctx);
@@ -316,7 +313,6 @@ csperf_server_readcb(struct bufferevent *bev, void *ptr)
     int message_type;
     csperf_client_ctx_t *cli_ctx = (csperf_client_ctx_t*) ptr;
     uint32_t len = 0;
-    zlog_debug(log_get_cat(), "%s\n", __FUNCTION__);
 
     /* Get buffer from input queue */
     do {
@@ -343,12 +339,13 @@ csperf_server_readcb(struct bufferevent *bev, void *ptr)
 void
 csperf_server_eventcb(struct bufferevent *bev, short events, void *ctx)
 {
-    zlog_debug(log_get_cat(), "%s\n", __FUNCTION__);
     csperf_client_ctx_t *cli_ctx = ctx;
     int finished = 0;
 
     if (events & BEV_EVENT_ERROR) {
-        zlog_warn(log_get_cat(), "Error: %s\n", evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
+        zlog_info(log_get_cat(), "%s: Ctx(%"PRIu64"): Socket error: %s\n",
+                __FUNCTION__, cli_ctx->ctx_id, 
+                 evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
         finished = 1;
     }
 
@@ -368,7 +365,6 @@ csperf_server_accept(struct evconnlistener *listener,
     evutil_socket_t fd, struct sockaddr *address, int socklen,
     void *ctx)
 {
-    zlog_debug(log_get_cat(), "%s\n", __FUNCTION__);
     csperf_server_t  *server = (csperf_server_t *)ctx;
     struct event_base *base = evconnlistener_get_base(listener);
     csperf_client_ctx_t *cli_ctx = csperf_server_get_cli_ctx(server);
@@ -391,6 +387,8 @@ csperf_server_accept(struct evconnlistener *listener,
     bufferevent_enable(cli_ctx->buff_event, EV_READ|EV_WRITE);
     bufferevent_setwatermark(cli_ctx->buff_event, EV_READ, CS_HEADER_PDU_LEN, 0);
     cli_ctx->show_stats = 1;
+    zlog_info(log_get_cat(), "%s: Ctx(%"PRIu64"): Connection is accepted\n",
+            __FUNCTION__, cli_ctx->ctx_id);
 }
 
 int
@@ -398,7 +396,6 @@ csperf_server_configure(csperf_server_t *server)
 {
     struct sockaddr_in sin;
     struct evconnlistener *listener;
-    zlog_debug(log_get_cat(), "%s\n", __FUNCTION__);
 
     memset(&sin, 0, sizeof(sin));
     sin.sin_family = AF_INET;

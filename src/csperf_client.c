@@ -52,6 +52,7 @@ csperf_client_manager_shutdown(csperf_client_manager_t *cli_mgr)
     event_base_free(cli_mgr->evbase);
     csperf_config_cleanup(cli_mgr->config);
     free(cli_mgr);
+    zlog_info(log_get_cat(), "%s: Successfully shutdown client manager\n", __FUNCTION__);
 }
 
 static void
@@ -88,6 +89,8 @@ csperf_client_shutdown(csperf_client_t *client)
         free(client->data_pdu);
         client->data_pdu = NULL;
     }
+    zlog_info(log_get_cat(), "%s: Client(%u):  Cleaning up connection on the client\n",
+            __FUNCTION__, client->client_id);
 
     /* Check if all the clients are done. */
     if (!(--client->cli_mgr->active_connections)) {
@@ -120,7 +123,8 @@ csperf_client_timer_cb(int fd, short kind, void *userp)
     /* Check if we need to stop */
     if ((client->cli_mgr->config->client_runtime) &&
             (++timer >= client->cli_mgr->config->client_runtime)) {
-        zlog_info(log_get_cat(), "Client: Timeout!\n");
+        zlog_info(log_get_cat(), "%s: Client(%u): Timeout\n",
+                __FUNCTION__, client->client_id);
         csperf_client_shutdown(client);
         return;
     }
@@ -195,6 +199,7 @@ csperf_client_manager_init(csperf_config_t *config)
             return NULL;
         }
     }
+    zlog_info(log_get_cat(), "%s: Initialised client manager\n", __FUNCTION__);
     return cli_mgr;
 }
 
@@ -318,7 +323,8 @@ csperf_client_process_command(csperf_client_t *client, struct evbuffer *buf)
         }
         break;
     default:
-        zlog_warn(log_get_cat(), "Unexpected command\n");
+        zlog_info(log_get_cat(), "%s: Client(%u): Unexpected mark command\n",
+                __FUNCTION__, client->client_id);
         return -1;
     }
     return 0;
@@ -372,7 +378,8 @@ csperf_client_eventcb(struct bufferevent *bev, short events, void *ctx)
     /* Connected to the server */
     if (events & BEV_EVENT_CONNECTED) {
         client->state = CLIENT_CONNECTED;
-        zlog_info(log_get_cat(), "Client connected to server..Please wait\n");
+        zlog_info(log_get_cat(), "%s: Client(%u): Connected to server\n",
+                __FUNCTION__, client->client_id);
 
         /* Start the transfer */
         csperf_client_start(client);
@@ -381,7 +388,9 @@ csperf_client_eventcb(struct bufferevent *bev, short events, void *ctx)
             finished = 1;
         }
         if (events & BEV_EVENT_ERROR) {
-            zlog_warn(log_get_cat(), "Error: %s\n", evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
+            zlog_info(log_get_cat(), "%s: Client(%u): Socket error: %s\n",
+                    __FUNCTION__, client->client_id,
+                    evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
             fprintf(stderr, "Error: %s\n", evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
             finished = 1;
         }
@@ -424,9 +433,11 @@ csperf_client_manager_configure(csperf_client_manager_t *cli_mgr)
         client->second_timer = evtimer_new(cli_mgr->evbase,
             csperf_client_timer_cb, client);
         csperf_client_timer_update(client);
-        zlog_info(log_get_cat(), "Client: Connecting to: %s:%d\n",
-            client->cli_mgr->config->server_hostname, client->cli_mgr->config->server_port);
         cli_mgr->active_connections++;
+        zlog_info(log_get_cat(), "%s: Client(%u): Connecting to server: %s:%u"
+                " Total attempts: %u\n",
+                __FUNCTION__, client->client_id, client->cli_mgr->config->server_hostname,
+                 client->cli_mgr->config->server_port, cli_mgr->active_connections);
     }
     return 0;
 }
