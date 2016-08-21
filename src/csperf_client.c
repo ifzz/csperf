@@ -175,7 +175,7 @@ csperf_client_manager_init(csperf_config_t *config)
          * Not everything we set up might be used */
         for (j = 0; j < CS_CMD_MAX; j++) {
             if (!(client->command_pdu_table[j] =
-                csperf_network_create_pdu(CS_MSG_COMMAND, i,
+                csperf_network_create_pdu(CS_MSG_COMMAND, j,
                     CS_COMMAND_PDU_LEN))) {
                 free(cli_mgr);
                 return NULL;
