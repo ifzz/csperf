@@ -218,9 +218,9 @@ csperf_server_get_cli_ctx(csperf_server_t *server)
 static int
 csperf_server_send_mark_resp_command(csperf_client_ctx_t *cli_ctx, uint8_t flags)
 {
-    asn_command_pdu *command;
+    csperf_command_pdu *command;
 
-    command = (asn_command_pdu *)(&cli_ctx->
+    command = (csperf_command_pdu *)(&cli_ctx->
             command_pdu_table[CS_CMD_MARK_RESP]->message);
 
     command->blocks_to_receive = cli_ctx->server->config->total_data_blocks;
@@ -274,7 +274,7 @@ csperf_server_process_data(csperf_client_ctx_t *cli_ctx, struct evbuffer *buf,
 static int
 csperf_server_process_command(csperf_client_ctx_t *cli_ctx, struct evbuffer *buf)
 {
-    asn_command_pdu command = { 0 };
+    csperf_command_pdu command = { 0 };
 
     /* Remove header */
     evbuffer_drain(buf, CS_HEADER_PDU_LEN);

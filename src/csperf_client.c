@@ -209,9 +209,9 @@ csperf_client_manager_init(csperf_config_t *config)
 static int
 csperf_client_send_mark_command(csperf_client_t *client, uint8_t flags)
 {
-    asn_command_pdu *command;
+    csperf_command_pdu *command;
 
-    command = (asn_command_pdu *)(&client->
+    command = (csperf_command_pdu *)(&client->
             command_pdu_table[CS_CMD_MARK]->message);
 
     command->blocks_to_receive = client->cli_mgr->config->total_data_blocks;
@@ -295,7 +295,7 @@ csperf_client_process_data(csperf_client_t *client, struct evbuffer *buf,
 static int
 csperf_client_process_command(csperf_client_t *client, struct evbuffer *buf)
 {
-    asn_command_pdu command = { 0 };
+    csperf_command_pdu command = { 0 };
 
     /* Remove header */
     evbuffer_drain(buf, CS_HEADER_PDU_LEN);

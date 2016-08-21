@@ -26,12 +26,12 @@ struct csperf_client_ctx_s {
     uint8_t            show_stats;
     struct event       *second_timer;
     struct bufferevent *buff_event;
-    asn_message_pdu    *command_pdu_table[CS_CMD_MAX];
+    csperf_message_pdu *command_pdu_table[CS_CMD_MAX];
     csperf_server_t    *server;
-    uint64_t            client_last_received_timestamp;
-    uint64_t            ctx_id;
-    csperf_stats_t      stats;
-};
+    uint64_t           client_last_received_timestamp;
+    uint64_t           ctx_id;
+    csperf_stats_t     stats;
+}
 
 int csperf_server_run(csperf_config_t *config);
 #endif /* __CS_PERF_SERVER_H */

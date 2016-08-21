@@ -23,10 +23,10 @@ typedef struct csperf_client_s
     int                      repeat_count;
     struct event             *second_timer;
     struct bufferevent       *buff_event;
-    asn_message_pdu          *data_pdu;
-    asn_message_pdu          *command_pdu_table[CS_CMD_MAX];
+    csperf_message_pdu       *data_pdu;
+    csperf_message_pdu       *command_pdu_table[CS_CMD_MAX];
     csperf_client_manager_t  *cli_mgr;
-    csperf_stats_t            stats;
+    csperf_stats_t           stats;
 } csperf_client_t;
 
 struct csperf_client_manager_s

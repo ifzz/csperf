@@ -6,8 +6,8 @@
 
 #define MAX_ALLOWED_CLIENTS 16000
 #define CS_MAGIC 0xaa
-#define CS_HEADER_PDU_LEN (sizeof(asn_message_pdu)) 
-#define CS_COMMAND_PDU_LEN (sizeof(asn_command_pdu)) 
+#define CS_HEADER_PDU_LEN (sizeof(csperf_message_pdu)) 
+#define CS_COMMAND_PDU_LEN (sizeof(csperf_command_pdu)) 
 
 /* Flags */
 #define CS_FLAG_DUPLEX      0x01
@@ -15,7 +15,7 @@
 
 /* Each packet that gets sent out can be either
  * a data or a command */
-enum asn_message_type {
+enum csperf_message_type {
     CS_MSG_COMMAND = 1,
     CS_MSG_DATA
 };
@@ -27,7 +27,7 @@ enum asn_message_type {
    Mark response: Sent from server->client.
         After the server has done processing data
 */
-enum asn_command_type {
+enum csperf_command_type {
     CS_CMD_MARK,
     CS_CMD_MARK_RESP,
 
@@ -45,7 +45,7 @@ typedef struct
 
     /* Payload */
     uint8_t  message[];
-} asn_message_pdu;
+} csperf_message_pdu;
 
 typedef struct
 {
@@ -55,10 +55,10 @@ typedef struct
     uint8_t        command_type;
     uint8_t        flags;
     uint8_t        resvrd[2];
-} asn_command_pdu;
+} csperf_command_pdu;
 
 int csperf_network_get_pdu_type(struct evbuffer *buf, uint32_t *len);
-asn_message_pdu* csperf_network_create_pdu(uint8_t message_type,
+csperf_message_pdu* csperf_network_create_pdu(uint8_t message_type,
          uint8_t message_info, uint32_t message_len);
 uint64_t csperf_network_get_time(char *buf);
 #endif /* __CS_PERF_NETWORK_H */

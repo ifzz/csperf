@@ -7,16 +7,16 @@
 
 #include "csperf_network.h"
 
-/* Create asn message with header.
+/* Create csperf message with header.
  * message_info argument is used if the
  * message type is command */
-asn_message_pdu*
+csperf_message_pdu*
 csperf_network_create_pdu(uint8_t message_type,
     uint8_t message_info, uint32_t message_len)
 {
     int i;
-    asn_message_pdu  *header = NULL;
-    asn_command_pdu command;
+    csperf_message_pdu  *header = NULL;
+    csperf_command_pdu command;
 
     /* If the message_len is huge (> 1GB), we might need
      * to use mmap */
@@ -36,7 +36,7 @@ csperf_network_create_pdu(uint8_t message_type,
             header->message[i] = rand();
         }
     } else {
-        memset(&command, 0, sizeof(asn_command_pdu));
+        memset(&command, 0, sizeof(csperf_command_pdu));
         command.command_type = message_info;
 
         /* Copy the command as the message payload */
@@ -51,7 +51,7 @@ csperf_network_create_pdu(uint8_t message_type,
 int
 csperf_network_get_pdu_type(struct evbuffer *buf, uint32_t *len)
 {
-    asn_message_pdu     header;
+    csperf_message_pdu     header;
     uint32_t            total_len;
     size_t buffer_len = evbuffer_get_length(buf);
 
