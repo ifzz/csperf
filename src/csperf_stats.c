@@ -41,7 +41,7 @@ ansperf_stats_display(csperf_stats_t *stats, FILE *fd)
     if (!stats) {
         return;
     }
-    
+
     if (!header_displayed) {
         csperf_stats_printf(fd, "%s%s", header, seperator_line);
         header_displayed = 1;

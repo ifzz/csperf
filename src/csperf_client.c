@@ -151,7 +151,7 @@ csperf_client_manager_init(csperf_config_t *config)
     }
 
     if (!(cli_mgr->evbase = event_base_new())) {
-        free(client);
+        free(cli_mgr);
         return NULL;
     }
     cli_mgr->config = config;

@@ -28,7 +28,4 @@ release: all
 clean:
 	rm -rf build/src 
 	rm -rf build; rm -rf core* 
-	rm -rf /usr/local/share/man/man1/csperf.1
-	rm -rf /etc/csperf/log.conf
-	rm -rf /usr/local/bin/csperf
 	rm -rf /tmp/csperf_info.log

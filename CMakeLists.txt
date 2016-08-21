@@ -12,7 +12,7 @@ include_directories(
         "${PROJECT_SOURCE_DIR}/src/common")
 
 set(LIBEVENT_DIR  ${PROJECT_SOURCE_DIR}/packages/libevent-2.0.21-stable)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+set(CMAKE_C_FLAGS "-g -Wall -Werror -Wfatal-errors")
 
 include(ExternalProject)
 

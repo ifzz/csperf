@@ -359,6 +359,7 @@ csperf_server_eventcb(struct bufferevent *bev, short events, void *ctx)
     if (finished) {
         /* Display stats */
         csperf_server_reset_stats(cli_ctx);
+        csperf_server_ctx_cli_shutdown(cli_ctx);
     }
 }
 
