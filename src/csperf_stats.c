@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdarg.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 #include "csperf_stats.h"
 #include "csperf_common.h"
@@ -52,7 +54,7 @@ ansperf_stats_display(csperf_stats_t *stats, FILE *fd)
     csperf_common_calculate_size(total_bytes_recv_str,
             stats->total_bytes_received);
 
-    csperf_stats_printf(fd, "%3d   %15s    %10s    %10zu    %10zu    %10zu       %10s    "
+    csperf_stats_printf(fd, "%3d   %15s    %10s    %10"PRIu64"    %10"PRIu64"    %10"PRIu64"       %10s    "
             "%10s\n\n", ++cycle,
             total_bytes_sent_str, total_bytes_recv_str,
             stats->total_blocks_sent, stats->total_blocks_received,
