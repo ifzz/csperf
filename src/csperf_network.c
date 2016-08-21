@@ -97,7 +97,7 @@ csperf_network_get_time(char *buf)
 
     if (buf) {
         if((tm = localtime(&tv.tv_sec)) != NULL) {
-            strftime(fmt, sizeof(fmt), "%Y-%m-%d %H:%M:%S.%03u", tm);
+            strftime(fmt, sizeof(fmt), "%Y-%m-%d %H:%M:%S.%%03u", tm);
             snprintf(buf, sizeof(fmt), fmt, tv.tv_usec);
         }
     }
