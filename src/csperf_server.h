@@ -31,7 +31,7 @@ struct csperf_client_ctx_s {
     uint64_t           client_last_received_timestamp;
     uint64_t           ctx_id;
     csperf_stats_t     stats;
-}
+};
 
 int csperf_server_run(csperf_config_t *config);
 #endif /* __CS_PERF_SERVER_H */
