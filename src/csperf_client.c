@@ -23,6 +23,7 @@ csperf_client_manager_shutdown(csperf_client_manager_t *cli_mgr)
     if (!cli_mgr) {
         return;
     }
+    csperf_output_stats(&cli_mgr->stats, cli_mgr->output_file);
 
     for (i = 0; i < cli_mgr->config->total_clients; i++) {
         client = &cli_mgr->client_table[i];
@@ -67,7 +68,7 @@ csperf_client_shutdown(csperf_client_t *client)
 
     /* Print stats only if the client is connected to the server */
     if (client->state >= CLIENT_CONNECTED) {
-        ansperf_stats_display(&client->stats, client->cli_mgr->output_file);
+        csperf_output_stats_to_file(&client->stats, client->cli_mgr->output_file);
     }
 
     if (client->buff_event) {
@@ -221,6 +222,7 @@ csperf_client_send_mark_command(csperf_client_t *client, uint8_t flags)
 
     client->transfer_flags = command->flags = flags;
     client->stats.total_commands_sent++;
+    client->cli_mgr->stats.total_commands_sent++;
 
     return bufferevent_write(client->buff_event,
         client->command_pdu_table[CS_CMD_MARK],
@@ -260,6 +262,9 @@ csperf_client_send_data(csperf_client_t *client)
     client->stats.total_bytes_sent +=  client->cli_mgr->config->data_block_size +
         CS_HEADER_PDU_LEN;
     client->stats.total_blocks_sent++;
+    client->cli_mgr->stats.total_bytes_sent +=  client->cli_mgr->config->data_block_size +
+        CS_HEADER_PDU_LEN;
+    client->cli_mgr->stats.total_blocks_sent++;
     return 0;
 }
 
@@ -288,6 +293,8 @@ csperf_client_process_data(csperf_client_t *client, struct evbuffer *buf,
     /* Silent drain data */
     client->stats.total_bytes_received += len;
     client->stats.total_blocks_received++;
+    client->cli_mgr->stats.total_bytes_received += len;
+    client->cli_mgr->stats.total_blocks_received++;
     evbuffer_drain(buf, len);
     return 0;
 }
@@ -303,6 +310,7 @@ csperf_client_process_command(csperf_client_t *client, struct evbuffer *buf)
 
     evbuffer_remove(buf, &command, CS_COMMAND_PDU_LEN);
     client->stats.total_commands_received++;
+    client->cli_mgr->stats.total_commands_received++;
 
     switch (command.command_type) {
     case CS_CMD_MARK_RESP:
@@ -317,7 +325,7 @@ csperf_client_process_command(csperf_client_t *client, struct evbuffer *buf)
         } else {
             /* Comes here when -r option is used. Run the test again */
             client->repeat_count++;
-            ansperf_stats_display(&client->stats, client->cli_mgr->output_file);
+            csperf_output_stats_to_file(&client->stats, client->cli_mgr->output_file);
             memset(&client->stats, 0, sizeof(client->stats));
             /* start again */
             csperf_client_start(client);
@@ -374,6 +382,7 @@ static void
 csperf_client_eventcb(struct bufferevent *bev, short events, void *ctx)
 {
     csperf_client_t *client = ctx;
+    csperf_client_manager_t *cli_mgr = client->cli_mgr;
     int finished = 0;
 
     /* Connected to the server */
@@ -381,6 +390,9 @@ csperf_client_eventcb(struct bufferevent *bev, short events, void *ctx)
         client->state = CLIENT_CONNECTED;
         zlog_info(log_get_cat(), "%s: Client(%u): Connected to server\n",
                 __FUNCTION__, client->client_id);
+
+        /* Update the stats */
+        cli_mgr->stats.total_connection_connected++;
 
         /* Start the transfer */
         csperf_client_start(client);
@@ -393,9 +405,10 @@ csperf_client_eventcb(struct bufferevent *bev, short events, void *ctx)
                     __FUNCTION__, client->client_id,
                     evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
             if (client->state >= CLIENT_CONNECTED) {
+                cli_mgr->stats.total_connection_errors++;
                 strcpy(client->stats.error_message, evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
             } else {
-                fprintf(stderr, "Error: %s\n", evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
+                cli_mgr->stats.total_connects_failed++;
             }
             finished = 1;
         }
@@ -439,6 +452,7 @@ csperf_client_manager_configure(csperf_client_manager_t *cli_mgr)
             csperf_client_timer_cb, client);
         csperf_client_timer_update(client);
         cli_mgr->active_connections++;
+        cli_mgr->stats.total_connection_attempts++;
         zlog_info(log_get_cat(), "%s: Client(%u): Connecting to server: %s:%u"
                 " Total attempts: %u\n",
                 __FUNCTION__, client->client_id, client->cli_mgr->config->server_hostname,

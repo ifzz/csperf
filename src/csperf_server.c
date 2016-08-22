@@ -24,11 +24,12 @@ csperf_server_shutdown(csperf_server_t *server)
     if (!server) {
         return;
     }
+    csperf_output_stats(&server->stats, server->output_file);
 
     while ((entry = pi_dll_dequeue_head(&server->ctx_inuse_list))) {
         cli_ctx = (csperf_client_ctx_t *) entry;
         if (cli_ctx->show_stats) {
-            ansperf_stats_display(&cli_ctx->stats, server->output_file);
+            csperf_output_stats_to_file(&cli_ctx->stats, server->output_file);
         }
         if (cli_ctx->buff_event) {
             bufferevent_free(cli_ctx->buff_event);
@@ -69,7 +70,7 @@ csperf_server_ctx_cli_shutdown(csperf_client_ctx_t *cli_ctx)
     }
 
     if (cli_ctx->show_stats) {
-        ansperf_stats_display(&cli_ctx->stats, cli_ctx->server->output_file);
+        csperf_output_stats_to_file(&cli_ctx->stats, cli_ctx->server->output_file);
     }
     if (cli_ctx->buff_event) {
         bufferevent_free(cli_ctx->buff_event);
@@ -99,7 +100,7 @@ static void
 csperf_server_reset_stats(csperf_client_ctx_t *cli_ctx)
 {
     if (cli_ctx->show_stats) {
-        ansperf_stats_display(&cli_ctx->stats, cli_ctx->server->output_file);
+        csperf_output_stats_to_file(&cli_ctx->stats, cli_ctx->server->output_file);
 
         /* Then 0 it out */
         memset(&cli_ctx->stats, 0, sizeof(cli_ctx->stats));
@@ -229,6 +230,7 @@ csperf_server_send_mark_resp_command(csperf_client_ctx_t *cli_ctx, uint8_t flags
         cli_ctx->client_last_received_timestamp;
     cli_ctx->transfer_flags = command->flags = flags;
     cli_ctx->stats.total_commands_sent++;
+    cli_ctx->server->stats.total_commands_sent++;
 
     /* Calculate the time to process the data */
     cli_ctx->stats.time_to_process_data =
@@ -250,6 +252,8 @@ csperf_server_process_data(csperf_client_ctx_t *cli_ctx, struct evbuffer *buf,
 {
     cli_ctx->stats.total_bytes_received += len;
     cli_ctx->stats.total_blocks_received++;
+    cli_ctx->server->stats.total_bytes_received += len;
+    cli_ctx->server->stats.total_blocks_received++;
 
     if (cli_ctx->transfer_flags == CS_FLAG_DUPLEX) {
         /* Move it to buffer event's output queue.
@@ -258,6 +262,8 @@ csperf_server_process_data(csperf_client_ctx_t *cli_ctx, struct evbuffer *buf,
             (buf, bufferevent_get_output(cli_ctx->buff_event), len);
         cli_ctx->stats.total_bytes_sent +=  len;
         cli_ctx->stats.total_blocks_sent++;
+        cli_ctx->server->stats.total_bytes_sent +=  len;
+        cli_ctx->server->stats.total_blocks_sent++;
     } else {
         /* Silent drain data */
         evbuffer_drain(buf, len);
@@ -297,6 +303,7 @@ csperf_server_process_command(csperf_client_ctx_t *cli_ctx, struct evbuffer *buf
         return -1;
     }
     cli_ctx->stats.total_commands_received++;
+    cli_ctx->server->stats.total_commands_received++;
     return 0;
 }
 
@@ -353,6 +360,7 @@ csperf_server_eventcb(struct bufferevent *bev, short events, void *ctx)
             __FUNCTION__, cli_ctx->ctx_id,
              evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
         strcpy(cli_ctx->stats.error_message, evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
+        cli_ctx->server->stats.total_connection_errors++;
         finished = 1;
     }
 
@@ -396,6 +404,7 @@ csperf_server_accept(struct evconnlistener *listener,
     cli_ctx->show_stats = 1;
     zlog_info(log_get_cat(), "%s: Ctx(%"PRIu64"): Connection is accepted\n",
             __FUNCTION__, cli_ctx->ctx_id);
+    cli_ctx->server->stats.total_connection_connected++;
 }
 
 int

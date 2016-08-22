@@ -12,12 +12,13 @@
 typedef struct csperf_client_ctx_s csperf_client_ctx_t;
 
 typedef struct csperf_server_s {
-    FILE                *output_file;
-    struct event_base   *evbase;
-    csperf_config_t     *config;
-    csperf_client_ctx_t *ctx_base;
-    pi_dll_t            ctx_free_list;
-    pi_dll_t            ctx_inuse_list;
+    FILE                  *output_file;
+    struct event_base     *evbase;
+    csperf_config_t       *config;
+    csperf_client_ctx_t   *ctx_base;
+    csperf_global_stats_t stats;
+    pi_dll_t              ctx_free_list;
+    pi_dll_t              ctx_inuse_list;
 } csperf_server_t;
 
 struct csperf_client_ctx_s {

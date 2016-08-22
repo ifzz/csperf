@@ -31,11 +31,13 @@ typedef struct csperf_client_s
 
 struct csperf_client_manager_s
 {
-    FILE                 *output_file;
-    struct event_base    *evbase;
-    csperf_config_t      *config;
-    uint32_t             active_connections;
-    csperf_client_t      client_table[1];
+    FILE                  *output_file;
+    struct event_base     *evbase;
+    csperf_config_t       *config;
+    uint32_t              active_connections;
+    uint32_t              connected_connections;
+    csperf_global_stats_t stats;
+    csperf_client_t       client_table[1];
 };
 
 int csperf_client_run();
