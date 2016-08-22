@@ -225,7 +225,7 @@ csperf_server_send_mark_resp_command(csperf_client_ctx_t *cli_ctx, uint8_t flags
             command_pdu_table[CS_CMD_MARK_RESP]->message);
 
     command->blocks_to_receive = cli_ctx->server->config->total_data_blocks;
-    command->timestamp =
+    command->timestamp = 
         cli_ctx->client_last_received_timestamp;
     cli_ctx->transfer_flags = command->flags = flags;
     cli_ctx->stats.total_commands_sent++;
@@ -288,7 +288,7 @@ csperf_server_process_command(csperf_client_ctx_t *cli_ctx, struct evbuffer *buf
         cli_ctx->transfer_flags = command.flags;
         cli_ctx->server->config->total_data_blocks = command.blocks_to_receive;
         cli_ctx->client_last_received_timestamp = command.timestamp;
-        cli_ctx->client_last_received_local_time = 
+        cli_ctx->client_last_received_local_time =
             csperf_network_get_time(cli_ctx->stats.mark_received_time);
         break;
     default:
@@ -352,6 +352,7 @@ csperf_server_eventcb(struct bufferevent *bev, short events, void *ctx)
         zlog_info(log_get_cat(), "%s: Ctx(%"PRIu64"): Socket error: %s\n",
             __FUNCTION__, cli_ctx->ctx_id,
              evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
+        strcpy(cli_ctx->stats.error_message, evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
         finished = 1;
     }
 

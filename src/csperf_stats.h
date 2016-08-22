@@ -12,6 +12,7 @@ typedef struct {
     uint64_t  time_to_process_data;
     char      mark_sent_time[100];
     char      mark_received_time[100];
+    char      error_message[100];
 } csperf_stats_t;
 
 void ansperf_stats_display(csperf_stats_t *stats, FILE *fd);

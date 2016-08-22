@@ -52,8 +52,8 @@ csperf_client_manager_shutdown(csperf_client_manager_t *cli_mgr)
     event_base_free(cli_mgr->evbase);
     csperf_config_cleanup(cli_mgr->config);
     free(cli_mgr);
-    zlog_fini();
     zlog_info(log_get_cat(), "%s: Successfully shutdown client manager\n", __FUNCTION__);
+    zlog_fini();
 }
 
 static void
@@ -216,8 +216,8 @@ csperf_client_send_mark_command(csperf_client_t *client, uint8_t flags)
             command_pdu_table[CS_CMD_MARK]->message);
 
     command->blocks_to_receive = client->cli_mgr->config->total_data_blocks;
-    command->timestamp = csperf_network_get_time(
-            client->stats.mark_sent_time);
+    command->timestamp = 
+        csperf_network_get_time(client->stats.mark_sent_time);
 
     client->transfer_flags = command->flags = flags;
     client->stats.total_commands_sent++;
@@ -392,7 +392,11 @@ csperf_client_eventcb(struct bufferevent *bev, short events, void *ctx)
             zlog_info(log_get_cat(), "%s: Client(%u): Socket error: %s\n",
                     __FUNCTION__, client->client_id,
                     evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
-            fprintf(stderr, "Error: %s\n", evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
+            if (client->state >= CLIENT_CONNECTED) {
+                strcpy(client->stats.error_message, evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
+            } else {
+                fprintf(stderr, "Error: %s\n", evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
+            }
             finished = 1;
         }
         if (finished) {

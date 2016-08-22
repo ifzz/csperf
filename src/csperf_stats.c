@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 #include <inttypes.h>
 
 #include "csperf_stats.h"
@@ -7,11 +8,11 @@
 
 const char header[] =
 "Cycle    Bytes_sent    Bytes_Received    Blocks_sent    Blocks_received    "
-"Time_to_process(ms)    Mark_sent_time    Mark_received_time\n";
+"Time_to_process(ms)    Mark_sent_time    Mark_received_time        Error\n";
 
 const char seperator_line[] =
 "------------------------------------------------------------------------"
-"------------------------------------------------------------\n";
+"---------------------------------------------------------------------------\n";
 
 void
 csperf_stats_printf(FILE *fd, const char *format, ...)
@@ -54,9 +55,11 @@ ansperf_stats_display(csperf_stats_t *stats, FILE *fd)
             stats->total_bytes_received);
 
     csperf_stats_printf(fd, "%3d   %15s    %10s    %10"PRIu64"    %10"PRIu64"    %10"PRIu64"       %10s    "
-            "%10s\n\n", ++cycle,
+            "%10s       %10s\n\n", ++cycle,
             total_bytes_sent_str, total_bytes_recv_str,
             stats->total_blocks_sent, stats->total_blocks_received,
             stats->time_to_process_data,
-            stats->mark_sent_time, stats->mark_received_time);
+            strlen(stats->mark_received_time) ? stats->mark_sent_time : "-", 
+            strlen(stats->mark_received_time) ? stats->mark_received_time : "-",
+            strlen(stats->error_message) ? stats->error_message : "");
 }
