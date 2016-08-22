@@ -394,6 +394,13 @@ csperf_server_accept(struct evconnlistener *listener,
     cli_ctx->buff_event = bufferevent_socket_new(base, fd,
             BEV_OPT_CLOSE_ON_FREE);
 
+    if (!cli_ctx->buff_event) {
+        zlog_error(log_get_cat(), "%s: Unable to get a socket\n", __FUNCTION__);
+        fprintf(stderr, "Could not get a new socket, Shutting down server\n");
+        csperf_server_shutdown(server);
+        return;
+    }
+
     /* We got a new connection! Set up a bufferevent for it. */
     /* Set callbacks */
     evutil_make_socket_nonblocking(bufferevent_getfd(cli_ctx->buff_event));

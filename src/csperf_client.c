@@ -66,10 +66,7 @@ csperf_client_shutdown(csperf_client_t *client)
         return;
     }
 
-    /* Print stats only if the client is connected to the server */
-    if (client->state >= CLIENT_CONNECTED) {
-        csperf_output_stats_to_file(&client->stats, client->cli_mgr->output_file);
-    }
+    csperf_output_stats_to_file(&client->stats, client->cli_mgr->output_file);
 
     if (client->buff_event) {
         bufferevent_free(client->buff_event);
@@ -91,8 +88,9 @@ csperf_client_shutdown(csperf_client_t *client)
         free(client->data_pdu);
         client->data_pdu = NULL;
     }
-    zlog_info(log_get_cat(), "%s: Client(%u):  Cleaning up connection on the client\n",
-            __FUNCTION__, client->client_id);
+    zlog_info(log_get_cat(), "%s: Client(%u):  Cleaning up connection on the client. "
+            "Still active: %u\n",
+            __FUNCTION__, client->client_id, client->cli_mgr->active_connections - 1);
 
     /* Check if all the clients are done. */
     if (!(--client->cli_mgr->active_connections)) {
@@ -404,9 +402,9 @@ csperf_client_eventcb(struct bufferevent *bev, short events, void *ctx)
             zlog_info(log_get_cat(), "%s: Client(%u): Socket error: %s\n",
                     __FUNCTION__, client->client_id,
                     evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
+            strcpy(client->stats.error_message, evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
             if (client->state >= CLIENT_CONNECTED) {
                 cli_mgr->stats.total_connection_errors++;
-                strcpy(client->stats.error_message, evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
             } else {
                 cli_mgr->stats.total_connects_failed++;
             }
@@ -431,6 +429,12 @@ csperf_client_manager_configure(csperf_client_manager_t *cli_mgr)
         client->buff_event = bufferevent_socket_new(cli_mgr->evbase, -1,
                 BEV_OPT_CLOSE_ON_FREE);
 
+        if (!client->buff_event) {
+            zlog_error(log_get_cat(), "Failed to get a new socket\n");
+            fprintf(stderr, "Unable to allocate a socket. Stopping test\n");
+            return -1;
+        }
+
         /* Set read write and event callbacks on the buffer event */
         bufferevent_setcb(client->buff_event, csperf_client_readcb,
             csperf_client_write_cb, csperf_client_eventcb, client);
@@ -444,8 +448,9 @@ csperf_client_manager_configure(csperf_client_manager_t *cli_mgr)
         if (bufferevent_socket_connect_hostname(client->buff_event,
                     NULL, AF_INET, client->cli_mgr->config->server_hostname,
                     client->cli_mgr->config->server_port)) {
-           bufferevent_free(client->buff_event);
-           return -1;
+            bufferevent_free(client->buff_event);
+            zlog_error(log_get_cat(), "Connect error. Stopping test\n");
+            return -1;
         }
 
         client->second_timer = evtimer_new(cli_mgr->evbase,
