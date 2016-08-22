@@ -52,6 +52,7 @@ csperf_client_manager_shutdown(csperf_client_manager_t *cli_mgr)
     event_base_free(cli_mgr->evbase);
     csperf_config_cleanup(cli_mgr->config);
     free(cli_mgr);
+    zlog_fini();
     zlog_info(log_get_cat(), "%s: Successfully shutdown client manager\n", __FUNCTION__);
 }
 
@@ -215,7 +216,7 @@ csperf_client_send_mark_command(csperf_client_t *client, uint8_t flags)
             command_pdu_table[CS_CMD_MARK]->message);
 
     command->blocks_to_receive = client->cli_mgr->config->total_data_blocks;
-    command->echo_timestamp = csperf_network_get_time(
+    command->timestamp = csperf_network_get_time(
             client->stats.mark_sent_time);
 
     client->transfer_flags = command->flags = flags;
@@ -308,7 +309,7 @@ csperf_client_process_command(csperf_client_t *client, struct evbuffer *buf)
         /* Calculate the time taken to process all the data */
         client->stats.time_to_process_data =
             csperf_network_get_time(client->stats.mark_received_time) -
-            command.echoreply_timestamp;
+            command.timestamp;
 
         if (client->cli_mgr->config->repeat_count > 0 &&
                 client->repeat_count >= client->cli_mgr->config->repeat_count) {

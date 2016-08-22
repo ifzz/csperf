@@ -29,6 +29,7 @@ struct csperf_client_ctx_s {
     csperf_message_pdu *command_pdu_table[CS_CMD_MAX];
     csperf_server_t    *server;
     uint64_t           client_last_received_timestamp;
+    uint64_t           client_last_received_local_time;
     uint64_t           ctx_id;
     csperf_stats_t     stats;
 };

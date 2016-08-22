@@ -49,8 +49,7 @@ typedef struct
 
 typedef struct
 {
-    uint64_t       echo_timestamp;
-    uint64_t       echoreply_timestamp;
+    uint64_t       timestamp;
     uint32_t       blocks_to_receive;
     uint8_t        command_type;
     uint8_t        flags;

@@ -44,5 +44,6 @@ main(int argc, char **argv)
     if ((error = csperf_main_start_test(config))) {
         exit(1);
     }
+    zlog_fini();
     return 0;
 }

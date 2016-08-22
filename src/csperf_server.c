@@ -55,6 +55,7 @@ csperf_server_shutdown(csperf_server_t *server)
     }
     free(server);
     zlog_info(log_get_cat(), "%s: Successfully shutdown server\n", __FUNCTION__);
+    zlog_fini();
 }
 
 /* Shutdown the client context */
@@ -224,7 +225,7 @@ csperf_server_send_mark_resp_command(csperf_client_ctx_t *cli_ctx, uint8_t flags
             command_pdu_table[CS_CMD_MARK_RESP]->message);
 
     command->blocks_to_receive = cli_ctx->server->config->total_data_blocks;
-    command->echo_timestamp = command->echoreply_timestamp =
+    command->timestamp =
         cli_ctx->client_last_received_timestamp;
     cli_ctx->transfer_flags = command->flags = flags;
     cli_ctx->stats.total_commands_sent++;
@@ -232,7 +233,7 @@ csperf_server_send_mark_resp_command(csperf_client_ctx_t *cli_ctx, uint8_t flags
     /* Calculate the time to process the data */
     cli_ctx->stats.time_to_process_data =
         csperf_network_get_time(cli_ctx->stats.mark_sent_time) -
-        cli_ctx->client_last_received_timestamp;
+        cli_ctx->client_last_received_local_time;
 
     /* End of 1 cycle */
     cli_ctx->show_stats = 1;
@@ -286,8 +287,9 @@ csperf_server_process_command(csperf_client_ctx_t *cli_ctx, struct evbuffer *buf
         assert(command.blocks_to_receive);
         cli_ctx->transfer_flags = command.flags;
         cli_ctx->server->config->total_data_blocks = command.blocks_to_receive;
-        cli_ctx->client_last_received_timestamp = command.echo_timestamp;
-        csperf_network_get_time(cli_ctx->stats.mark_received_time);
+        cli_ctx->client_last_received_timestamp = command.timestamp;
+        cli_ctx->client_last_received_local_time = 
+            csperf_network_get_time(cli_ctx->stats.mark_received_time);
         break;
     default:
         zlog_warn(log_get_cat(), "%s: Ctx(%"PRIu64"): Unexpected command received: %d\n",
@@ -331,7 +333,7 @@ csperf_server_readcb(struct bufferevent *bev, void *ptr)
         if (message_type == CS_MSG_DATA) {
             csperf_server_process_data(cli_ctx, input_buf, len);
         } else if (message_type == CS_MSG_COMMAND) {
-            /* We got a command from server */
+            /* We got a command from client */
             csperf_server_process_command(cli_ctx, input_buf);
         } else {
             assert(0);
