@@ -2,11 +2,11 @@ TOPDIR := $(shell pwd)
 TOPRPMDIR := $(TOPDIR)/build/rpmbuild
 all: 
 	mkdir -p build && cd build && \
-	cmake .. && make && cd -
+	cmake -D-DCMAKE_BUILD_TYPE=Debug .. && make && cd -
 
-debug:
+optimized:
 	mkdir -p build && cd build && \
-	cmake -DCMAKE_BUILD_TYPE=Debug .. && make && cd -
+	cmake -DCMAKE_BUILD_TYPE=Release .. && make && cd -
 
 install:
 	make -C build install
