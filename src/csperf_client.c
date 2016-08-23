@@ -17,12 +17,13 @@
 #define MAX_CLIENTS_TO_RUN 100 /* Maximum number of clients that we can connect to in one loop */ 
 static int csperf_client_manager_setup_clients(csperf_client_manager_t *cli_mgr, uint32_t total_clients);
 static int csperf_client_manager_timer_update(csperf_client_manager_t *cli_mgr, struct timeval *timeout);
+static void csperf_client_shutdown(csperf_client_t *client, int ignore);
 
 /* Shutdown and cleanup the client manager */
 static void
 csperf_client_manager_shutdown(csperf_client_manager_t *cli_mgr)
 {
-    int i, j;
+    int i;
     csperf_client_t *client;
 
     if (!cli_mgr) {
@@ -32,23 +33,7 @@ csperf_client_manager_shutdown(csperf_client_manager_t *cli_mgr)
 
     for (i = 0; i < cli_mgr->config->total_clients; i++) {
         client = &cli_mgr->client_table[i];
-        /* Print stats only if the client is connected to the server */
-        if (client->buff_event) {
-            bufferevent_free(client->buff_event);
-        }
-
-        if (client->second_timer) {
-            event_free(client->second_timer);
-        }
-
-        for(j = 0; j < CS_CMD_MAX; j++) {
-            if (client->command_pdu_table[j]) {
-                free(client->command_pdu_table[j]);
-            }
-        }
-        if (client->data_pdu) {
-            free(client->data_pdu);
-        }
+        csperf_client_shutdown(client, 1);
     }
 
     if (cli_mgr->output_file) {
@@ -68,11 +53,11 @@ csperf_client_manager_shutdown(csperf_client_manager_t *cli_mgr)
 }
 
 static void
-csperf_client_shutdown(csperf_client_t *client)
+csperf_client_shutdown(csperf_client_t *client, int ignore)
 {
     int i;
 
-    if (!client) {
+    if (!client || client->state == CLIENT_INIT) {
         return;
     }
 
@@ -100,12 +85,18 @@ csperf_client_shutdown(csperf_client_t *client)
         free(client->data_pdu);
         client->data_pdu = NULL;
     }
+    client->state = CLIENT_INIT;
     client->cli_mgr->completed_clients_per_cycle++;
     client->cli_mgr->active_clients_per_cycle--;
 
     zlog_info(log_get_cat(), "%s: Client(%u):  Cleaning up connection on the client. "
             "Connections completed: %u\n",
             __FUNCTION__, client->client_id, client->cli_mgr->completed_clients_per_cycle);
+
+    if (ignore) {
+        /* Don't do any further checks */
+        return;
+    }
 
     /* Check if all the clients are done. */
     if (client->cli_mgr->completed_clients_per_cycle == client->cli_mgr->config->total_clients) {
@@ -253,7 +244,7 @@ csperf_client_timer_cb(int fd, short kind, void *userp)
             (++timer >= client->cli_mgr->config->client_runtime)) {
         zlog_info(log_get_cat(), "%s: Client(%u): Timeout\n",
                 __FUNCTION__, client->client_id);
-        csperf_client_shutdown(client);
+        csperf_client_shutdown(client, 0);
         return;
     }
 
@@ -428,7 +419,7 @@ csperf_client_process_command(csperf_client_t *client, struct evbuffer *buf)
             csperf_network_get_time(client->stats.mark_received_time) -
             command.timestamp;
 
-        csperf_client_shutdown(client);
+        csperf_client_shutdown(client, 0);
         break;
     default:
         zlog_info(log_get_cat(), "%s: Client(%u): Unexpected mark command\n",
@@ -512,7 +503,7 @@ csperf_client_eventcb(struct bufferevent *bev, short events, void *ctx)
             finished = 1;
         }
         if (finished) {
-            csperf_client_shutdown(client);
+            csperf_client_shutdown(client, 0);
         }
     }
 }
