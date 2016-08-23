@@ -15,6 +15,7 @@
 
 #define MAX_CLIENTS_TO_RUN 100 /* Maximum number of clients that we can connect to in one loop */ 
 static int csperf_client_manager_setup_clients(csperf_client_manager_t *cli_mgr, uint32_t total_clients);
+static int csperf_client_manager_timer_update(csperf_client_manager_t *cli_mgr, struct timeval *timeout);
 
 /* Shutdown and cleanup the client manager */
 static void
@@ -75,6 +76,7 @@ csperf_client_shutdown(csperf_client_t *client)
     }
 
     csperf_output_stats_to_file(&client->stats, client->cli_mgr->output_file);
+    memset(&client->stats, 0, sizeof(client->stats));
     pi_dll_insert_tail(&client->cli_mgr->client_free_list, &client->client_link);
 
     if (client->buff_event) {
@@ -103,7 +105,22 @@ csperf_client_shutdown(csperf_client_t *client)
 
     /* Check if all the clients are done. */
     if (!(--client->cli_mgr->active_clients)) {
-        csperf_client_manager_shutdown(client->cli_mgr);
+        client->cli_mgr->repeat_count++;
+
+        /* Check if we need to repeat the test */
+        if (client->cli_mgr->repeat_count >= client->cli_mgr->config->repeat_count) {
+            csperf_client_manager_shutdown(client->cli_mgr);
+        } else {
+            struct timeval timeout;
+
+            timeout.tv_sec = 0;
+            timeout.tv_usec = 1000;
+
+            /* We need to repeat the test. Do this will allow 
+             * csperf_client_manager_timer_cb() to set up the clients again */
+            client->cli_mgr->attempted_clients_per_cycle = 0;
+            csperf_client_manager_timer_update(client->cli_mgr, &timeout);
+        }
     }
 }
 
@@ -140,9 +157,11 @@ csperf_client_manager_timer_cb(int fd, short kind, void *userp)
     timeout.tv_usec = 0;
 
     /* Start the test */
-    if (cli_mgr->active_clients < cli_mgr->config->total_clients) {
-        clients_pending = cli_mgr->config->total_clients - cli_mgr->active_clients; 
+    if (cli_mgr->attempted_clients_per_cycle < cli_mgr->config->total_clients) {
+        clients_pending = cli_mgr->config->total_clients - cli_mgr->attempted_clients_per_cycle; 
         clients_to_run = (clients_pending < MAX_CLIENTS_TO_RUN) ? clients_pending : MAX_CLIENTS_TO_RUN;
+        zlog_info(log_get_cat(), "%s: Running %u clients\n",
+                __FUNCTION__, clients_to_run);
         if ((csperf_client_manager_setup_clients(cli_mgr, clients_to_run))) {
             csperf_client_manager_shutdown(cli_mgr);
             return;
@@ -188,7 +207,7 @@ csperf_client_signal_cb(evutil_socket_t sig, short events, void *user_data)
 static csperf_client_manager_t *
 csperf_client_manager_init(csperf_config_t *config)
 {
-    int i, j;
+    int i;
     csperf_client_manager_t *cli_mgr;
     csperf_client_t *client = NULL;
     uint32_t client_id_count = 0;
@@ -211,29 +230,9 @@ csperf_client_manager_init(csperf_config_t *config)
 
         client = &cli_mgr->client_table[i];
 
-        /* Create data pdu. We do this once and keep sending the
-         * same data over and over again */
-        if (!(client->data_pdu =
-                    csperf_network_create_pdu(CS_MSG_DATA, 0,
-                        config->data_block_size))) {
-            free(cli_mgr);
-            return NULL;
-        }
-
-        /* Set up all commands. We also do this once.
-         * Not everything we set up might be used */
-        for (j = 0; j < CS_CMD_MAX; j++) {
-            if (!(client->command_pdu_table[j] =
-                csperf_network_create_pdu(CS_MSG_COMMAND, j,
-                    CS_COMMAND_PDU_LEN))) {
-                free(cli_mgr);
-                return NULL;
-            }
-        }
         pi_dll_init(&client->client_link);
         pi_dll_insert_tail(&cli_mgr->client_free_list, &client->client_link);
         client->client_id = ++client_id_count;
-        client->repeat_count = 1;
         client->cli_mgr = cli_mgr;
         client->cli_mgr->config = config;
     }
@@ -363,17 +362,7 @@ csperf_client_process_command(csperf_client_t *client, struct evbuffer *buf)
             csperf_network_get_time(client->stats.mark_received_time) -
             command.timestamp;
 
-        if (client->cli_mgr->config->repeat_count > 0 &&
-                client->repeat_count >= client->cli_mgr->config->repeat_count) {
-            csperf_client_shutdown(client);
-        } else {
-            /* Comes here when -r option is used. Run the test again */
-            client->repeat_count++;
-            csperf_output_stats_to_file(&client->stats, client->cli_mgr->output_file);
-            memset(&client->stats, 0, sizeof(client->stats));
-            /* start again */
-            csperf_client_start(client);
-        }
+        csperf_client_shutdown(client);
         break;
     default:
         zlog_info(log_get_cat(), "%s: Client(%u): Unexpected mark command\n",
@@ -468,13 +457,36 @@ csperf_client_manager_setup_clients(csperf_client_manager_t *cli_mgr, uint32_t t
 {
     csperf_client_t *client;
     pi_dll_t *entry;
-    int i;
+    int i, j;
 
     for (i = 0; i < total_clients; i++) {
         if (!(entry = pi_dll_dequeue_head(&cli_mgr->client_free_list))) {
             assert(0);
         }
         client = (csperf_client_t *)entry;
+
+
+        /* Create data pdu. We do this once and keep sending the
+         * same data over and over again */
+        if (!(client->data_pdu =
+                    csperf_network_create_pdu(CS_MSG_DATA, 0,
+                        cli_mgr->config->data_block_size))) {
+            zlog_error(log_get_cat(), "Failed to create Data pdu\n");
+            fprintf(stderr, "Failed to create data pdu. Stopping test\n");
+            return -1;
+        }
+
+        /* Set up all commands. We also do this once.
+         * Not everything we set up might be used */
+        for (j = 0; j < CS_CMD_MAX; j++) {
+            if (!(client->command_pdu_table[j] =
+                csperf_network_create_pdu(CS_MSG_COMMAND, j,
+                    CS_COMMAND_PDU_LEN))) {
+                zlog_error(log_get_cat(), "Failed to create Command pdu\n");
+                fprintf(stderr, "Failed to create command pdu. Stopping test\n");
+                return -1;
+            }
+        }
 
         /* Create a buffer event */
         client->buff_event = bufferevent_socket_new(cli_mgr->evbase, -1,
@@ -508,6 +520,7 @@ csperf_client_manager_setup_clients(csperf_client_manager_t *cli_mgr, uint32_t t
             csperf_client_timer_cb, client);
         csperf_client_timer_update(client);
         cli_mgr->active_clients++;
+        cli_mgr->attempted_clients_per_cycle++;
         cli_mgr->stats.total_connection_attempts++;
         zlog_info(log_get_cat(), "%s: Client(%u): Connecting to server: %s:%u"
                 " Total attempts: %u\n",

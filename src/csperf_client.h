@@ -22,7 +22,6 @@ typedef struct csperf_client_s
     uint32_t                 client_id;
     uint8_t                  transfer_flags;
     int                      state;
-    int                      repeat_count;
     struct event             *second_timer;
     struct bufferevent       *buff_event;
     csperf_message_pdu       *data_pdu;
@@ -38,8 +37,9 @@ struct csperf_client_manager_s
     csperf_config_t       *config;
     struct event          *second_timer;
     pi_dll_t              client_free_list;
+    int                   repeat_count;
     uint32_t              active_clients;
-    uint32_t              connected_connections;
+    uint32_t              attempted_clients_per_cycle;
     csperf_global_stats_t stats;
     csperf_client_t       client_table[1];
 };
