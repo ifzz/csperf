@@ -101,6 +101,7 @@ csperf_client_shutdown(csperf_client_t *client)
         client->data_pdu = NULL;
     }
     client->cli_mgr->completed_clients_per_cycle++;
+    client->cli_mgr->active_clients_per_cycle--;
 
     zlog_info(log_get_cat(), "%s: Client(%u):  Cleaning up connection on the client. "
             "Connections completed: %u\n",
@@ -123,7 +124,13 @@ csperf_client_shutdown(csperf_client_t *client)
              * csperf_client_manager_timer_cb() to set up the clients again */
             client->cli_mgr->attempted_clients_per_cycle = 0;
             client->cli_mgr->completed_clients_per_cycle = 0;
+            client->cli_mgr->active_clients_per_cycle = 0;
             csperf_client_manager_timer_update(client->cli_mgr, &timeout);
+        }
+    } else if (client->cli_mgr->config->concurrent_clients) {
+        /* Need to start a new client */
+        if ((csperf_client_manager_setup_clients(client->cli_mgr, 1))) {
+            csperf_client_manager_shutdown(client->cli_mgr);
         }
     }
 }
@@ -184,13 +191,27 @@ csperf_client_manager_clients_to_run(csperf_client_manager_t *cli_mgr, struct ti
             assert(0);
         }
     } else if (cli_mgr->config->concurrent_clients) {
+        assert(cli_mgr->config->concurrent_clients >= cli_mgr->active_clients_per_cycle);
+        clients_pending = cli_mgr->config->concurrent_clients - cli_mgr->active_clients_per_cycle; 
+        if (clients_pending < MAX_CLIENTS_TO_RUN) {
+            clients_to_run = clients_pending;
+        } else {
+            clients_to_run = MAX_CLIENTS_TO_RUN;
+            timeout->tv_sec = 0;
+            timeout->tv_usec = 1000;
+        }
     } else {
         clients_pending = cli_mgr->config->total_clients - cli_mgr->attempted_clients_per_cycle; 
-        clients_to_run = (clients_pending < MAX_CLIENTS_TO_RUN) ? clients_pending : MAX_CLIENTS_TO_RUN;
 
-        /* Schedule the timer callback sooner since there are still pending connections */
-        timeout->tv_sec = 0;
-        timeout->tv_usec = 1000;
+        if (clients_pending < MAX_CLIENTS_TO_RUN) {
+            clients_to_run = clients_pending;
+        } else {
+            clients_to_run = MAX_CLIENTS_TO_RUN;
+
+            /* Schedule the timer callback sooner since there are still pending connections */
+            timeout->tv_sec = 0;
+            timeout->tv_usec = 1000;
+        }
     }
     return clients_to_run;
 }
@@ -565,6 +586,7 @@ csperf_client_manager_setup_clients(csperf_client_manager_t *cli_mgr, uint32_t t
             csperf_client_timer_cb, client);
         csperf_client_timer_update(client);
         cli_mgr->attempted_clients_per_cycle++;
+        cli_mgr->active_clients_per_cycle++;
         cli_mgr->attempted_clients_per_second++;
         cli_mgr->stats.total_connection_attempts++;
         zlog_info(log_get_cat(), "%s: Client(%u): Connecting to server: %s:%u"

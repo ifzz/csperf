@@ -40,6 +40,7 @@ struct csperf_client_manager_s
     int                   repeat_count;
     uint32_t              completed_clients_per_cycle;
     uint32_t              attempted_clients_per_cycle;
+    uint32_t              active_clients_per_cycle;
     uint32_t              attempted_clients_per_second;
     csperf_global_stats_t stats;
     csperf_client_t       client_table[1];
