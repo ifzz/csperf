@@ -22,11 +22,13 @@ csperf_config_display_long_help()
     printf("Usage: csperf [-s|-c host] [options]\n");
     printf(" -c <hostname>         # Run as client and connect to hostname\n");
     printf(" -s                    # Run as server\n");
-    printf(" -C <num-clients>      # Total number of clients\n");
     printf(" -p <port>             # Server port to list to. Default 5001\n");
     printf(" -B <data block size>  # Size of the data segment. Default 1KB\n");
     printf(" -n <num blcks>        # Number of data blocks to send. Default 1000\n");
     printf(" -e                    # Echo client data. Server echos client data\n");
+    printf(" -C <num-clients>      # Total number of clients\n");
+    printf(" -P <num-clients>      # Concurrent/Parallel clients that needs to connect to the server \n");
+    printf(" -S <num-clients>      # Number of Clients that connects with the server every second\n");
     printf(" -r <repeat count>     # Repeat the test these many times. Setting -1 means run forever\n");
     printf(" -l <logfile>          # Logfile to write to. Default writes to csperf_xxx.txt xxx = client or server\n");
 }
@@ -61,7 +63,7 @@ csperf_config_parse_arguments(csperf_config_t *config,
         {NULL, 0, NULL, 0}
     };
 
-    while((rget_opt = getopt_long(argc, argv, "c:sp:C:B:n:em:r:l:h",
+    while((rget_opt = getopt_long(argc, argv, "c:sp:C:B:P:S:n:em:r:l:h",
                     longopts, NULL)) != -1) {
         switch (rget_opt) {
         case 'c':
@@ -108,6 +110,12 @@ csperf_config_parse_arguments(csperf_config_t *config,
                 free(config->server_output_file);
                 config->server_output_file = strdup(optarg);
             }
+            break;
+        case 'P':
+            config->concurrent_clients = atoi(optarg);
+            break;
+        case 'S':
+            config->clients_per_sec = atoi(optarg);
             break;
 #if 0
         case 't':

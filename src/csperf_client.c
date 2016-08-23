@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <assert.h>
 #include <unistd.h>
+#include <inttypes.h>
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>
 
@@ -99,12 +100,14 @@ csperf_client_shutdown(csperf_client_t *client)
         free(client->data_pdu);
         client->data_pdu = NULL;
     }
+    client->cli_mgr->completed_clients_per_cycle++;
+
     zlog_info(log_get_cat(), "%s: Client(%u):  Cleaning up connection on the client. "
-            "Still active: %u\n",
-            __FUNCTION__, client->client_id, client->cli_mgr->active_clients - 1);
+            "Connections completed: %u\n",
+            __FUNCTION__, client->client_id, client->cli_mgr->completed_clients_per_cycle);
 
     /* Check if all the clients are done. */
-    if (!(--client->cli_mgr->active_clients)) {
+    if (client->cli_mgr->completed_clients_per_cycle == client->cli_mgr->config->total_clients) {
         client->cli_mgr->repeat_count++;
 
         /* Check if we need to repeat the test */
@@ -116,9 +119,10 @@ csperf_client_shutdown(csperf_client_t *client)
             timeout.tv_sec = 0;
             timeout.tv_usec = 1000;
 
-            /* We need to repeat the test. Do this will allow 
+            /* We need to repeat the test. Setting attempted_clients_per_cycle to 0 will allow 
              * csperf_client_manager_timer_cb() to set up the clients again */
             client->cli_mgr->attempted_clients_per_cycle = 0;
+            client->cli_mgr->completed_clients_per_cycle = 0;
             csperf_client_manager_timer_update(client->cli_mgr, &timeout);
         }
     }
@@ -145,30 +149,71 @@ csperf_client_timer_update(csperf_client_t *client)
     return 0;
 }
 
+/* Determine the number of clients to run now */
+static uint32_t
+csperf_client_manager_clients_to_run(csperf_client_manager_t *cli_mgr, struct timeval *timeout)
+{
+    uint32_t clients_pending, clients_to_run = 0;
+
+    if (cli_mgr->attempted_clients_per_cycle >= cli_mgr->config->total_clients) {
+        /* No new clients to run */
+        return 0;
+    }
+
+    if (cli_mgr->config->clients_per_sec) {
+        if (cli_mgr->attempted_clients_per_second < cli_mgr->config->clients_per_sec) {
+            clients_pending = cli_mgr->config->clients_per_sec - cli_mgr->attempted_clients_per_second;
+            clients_to_run = (clients_pending < MAX_CLIENTS_TO_RUN) ? clients_pending : MAX_CLIENTS_TO_RUN;
+            if (clients_pending < MAX_CLIENTS_TO_RUN) {
+                clients_to_run = clients_pending;
+            } else {
+                clients_to_run = MAX_CLIENTS_TO_RUN;
+                timeout->tv_sec = 0;
+                timeout->tv_usec = 1000;
+            }
+        } else if (cli_mgr->attempted_clients_per_second == cli_mgr->config->clients_per_sec) {
+            cli_mgr->attempted_clients_per_second = 0;
+            if (cli_mgr->config->clients_per_sec < MAX_CLIENTS_TO_RUN) {
+                clients_to_run = cli_mgr->config->clients_per_sec;
+            } else {
+                clients_to_run = MAX_CLIENTS_TO_RUN;
+                timeout->tv_sec = 0;
+                timeout->tv_usec = 1000;
+            }
+        } else {
+            assert(0);
+        }
+    } else if (cli_mgr->config->concurrent_clients) {
+    } else {
+        clients_pending = cli_mgr->config->total_clients - cli_mgr->attempted_clients_per_cycle; 
+        clients_to_run = (clients_pending < MAX_CLIENTS_TO_RUN) ? clients_pending : MAX_CLIENTS_TO_RUN;
+
+        /* Schedule the timer callback sooner since there are still pending connections */
+        timeout->tv_sec = 0;
+        timeout->tv_usec = 1000;
+    }
+    return clients_to_run;
+}
+
 /* Monitor how many connections are setup. */
 static void
 csperf_client_manager_timer_cb(int fd, short kind, void *userp)
 {
     csperf_client_manager_t *cli_mgr = (csperf_client_manager_t *)userp;
-    uint32_t clients_pending, clients_to_run;
+    uint32_t clients_to_run;
     struct timeval timeout;
 
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
 
-    /* Start the test */
-    if (cli_mgr->attempted_clients_per_cycle < cli_mgr->config->total_clients) {
-        clients_pending = cli_mgr->config->total_clients - cli_mgr->attempted_clients_per_cycle; 
-        clients_to_run = (clients_pending < MAX_CLIENTS_TO_RUN) ? clients_pending : MAX_CLIENTS_TO_RUN;
+    /* Determine if we need to setup more clients */
+    if ((clients_to_run = csperf_client_manager_clients_to_run(cli_mgr, &timeout))) {
         zlog_info(log_get_cat(), "%s: Running %u clients\n",
                 __FUNCTION__, clients_to_run);
         if ((csperf_client_manager_setup_clients(cli_mgr, clients_to_run))) {
             csperf_client_manager_shutdown(cli_mgr);
             return;
         }
-        /* This is done to allow the signal handlers to run in the base loop */
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 1000;
     }
     csperf_client_manager_timer_update(cli_mgr, &timeout);
 }
@@ -519,13 +564,13 @@ csperf_client_manager_setup_clients(csperf_client_manager_t *cli_mgr, uint32_t t
         client->second_timer = evtimer_new(cli_mgr->evbase,
             csperf_client_timer_cb, client);
         csperf_client_timer_update(client);
-        cli_mgr->active_clients++;
         cli_mgr->attempted_clients_per_cycle++;
+        cli_mgr->attempted_clients_per_second++;
         cli_mgr->stats.total_connection_attempts++;
         zlog_info(log_get_cat(), "%s: Client(%u): Connecting to server: %s:%u"
-                " Total attempts: %u\n",
+                " Total attempts: %"PRIu64"\n",
                 __FUNCTION__, client->client_id, client->cli_mgr->config->server_hostname,
-                 client->cli_mgr->config->server_port, cli_mgr->active_clients);
+                 client->cli_mgr->config->server_port, cli_mgr->stats.total_connection_attempts);
     }
     return 0;
 }

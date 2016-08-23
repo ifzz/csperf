@@ -38,8 +38,9 @@ struct csperf_client_manager_s
     struct event          *second_timer;
     pi_dll_t              client_free_list;
     int                   repeat_count;
-    uint32_t              active_clients;
+    uint32_t              completed_clients_per_cycle;
     uint32_t              attempted_clients_per_cycle;
+    uint32_t              attempted_clients_per_second;
     csperf_global_stats_t stats;
     csperf_client_t       client_table[1];
 };
