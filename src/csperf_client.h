@@ -7,6 +7,7 @@
 #include "csperf_config.h"
 #include "csperf_network.h"
 #include "csperf_stats.h"
+#include "pi_dll.h"
 
 enum {
     CLIENT_INIT = 0,
@@ -17,6 +18,7 @@ typedef struct csperf_client_manager_s csperf_client_manager_t;
 
 typedef struct csperf_client_s
 {
+    pi_dll_t                 client_link;
     uint32_t                 client_id;
     uint8_t                  transfer_flags;
     int                      state;
@@ -34,7 +36,9 @@ struct csperf_client_manager_s
     FILE                  *output_file;
     struct event_base     *evbase;
     csperf_config_t       *config;
-    uint32_t              active_connections;
+    struct event          *second_timer;
+    pi_dll_t              client_free_list;
+    uint32_t              active_clients;
     uint32_t              connected_connections;
     csperf_global_stats_t stats;
     csperf_client_t       client_table[1];

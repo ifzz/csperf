@@ -13,6 +13,9 @@
 #include "csperf_common.h"
 #include "log.h"
 
+#define MAX_CLIENTS_TO_RUN 100 /* Maximum number of clients that we can connect to in one loop */ 
+static int csperf_client_manager_setup_clients(csperf_client_manager_t *cli_mgr, uint32_t total_clients);
+
 /* Shutdown and cleanup the client manager */
 static void
 csperf_client_manager_shutdown(csperf_client_manager_t *cli_mgr)
@@ -49,6 +52,11 @@ csperf_client_manager_shutdown(csperf_client_manager_t *cli_mgr)
     if (cli_mgr->output_file) {
         fclose(cli_mgr->output_file);
     }
+
+    if (cli_mgr->second_timer) {
+        event_free(cli_mgr->second_timer);
+    }
+
     event_base_loopbreak(cli_mgr->evbase);
     event_base_free(cli_mgr->evbase);
     csperf_config_cleanup(cli_mgr->config);
@@ -67,6 +75,7 @@ csperf_client_shutdown(csperf_client_t *client)
     }
 
     csperf_output_stats_to_file(&client->stats, client->cli_mgr->output_file);
+    pi_dll_insert_tail(&client->cli_mgr->client_free_list, &client->client_link);
 
     if (client->buff_event) {
         bufferevent_free(client->buff_event);
@@ -90,12 +99,20 @@ csperf_client_shutdown(csperf_client_t *client)
     }
     zlog_info(log_get_cat(), "%s: Client(%u):  Cleaning up connection on the client. "
             "Still active: %u\n",
-            __FUNCTION__, client->client_id, client->cli_mgr->active_connections - 1);
+            __FUNCTION__, client->client_id, client->cli_mgr->active_clients - 1);
 
     /* Check if all the clients are done. */
-    if (!(--client->cli_mgr->active_connections)) {
+    if (!(--client->cli_mgr->active_clients)) {
         csperf_client_manager_shutdown(client->cli_mgr);
     }
+}
+
+/* Update Client Manager timer. It ticks every 1 second */
+static int
+csperf_client_manager_timer_update(csperf_client_manager_t *cli_mgr, struct timeval *timeout)
+{
+    evtimer_add(cli_mgr->second_timer, timeout);
+    return 0;
 }
 
 /* Update timer. It ticks every 1 second */
@@ -109,6 +126,32 @@ csperf_client_timer_update(csperf_client_t *client)
     evtimer_add(client->second_timer, &timeout);
 
     return 0;
+}
+
+/* Monitor how many connections are setup. */
+static void
+csperf_client_manager_timer_cb(int fd, short kind, void *userp)
+{
+    csperf_client_manager_t *cli_mgr = (csperf_client_manager_t *)userp;
+    uint32_t clients_pending, clients_to_run;
+    struct timeval timeout;
+
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+
+    /* Start the test */
+    if (cli_mgr->active_clients < cli_mgr->config->total_clients) {
+        clients_pending = cli_mgr->config->total_clients - cli_mgr->active_clients; 
+        clients_to_run = (clients_pending < MAX_CLIENTS_TO_RUN) ? clients_pending : MAX_CLIENTS_TO_RUN;
+        if ((csperf_client_manager_setup_clients(cli_mgr, clients_to_run))) {
+            csperf_client_manager_shutdown(cli_mgr);
+            return;
+        }
+        /* This is done to allow the signal handlers to run in the base loop */
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 1000;
+    }
+    csperf_client_manager_timer_update(cli_mgr, &timeout);
 }
 
 /* Called when the timeout happens.
@@ -147,7 +190,7 @@ csperf_client_manager_init(csperf_config_t *config)
 {
     int i, j;
     csperf_client_manager_t *cli_mgr;
-    csperf_client_t *client;
+    csperf_client_t *client = NULL;
     uint32_t client_id_count = 0;
 
     cli_mgr = (csperf_client_manager_t *) calloc (1, sizeof(csperf_client_manager_t) +
@@ -162,6 +205,7 @@ csperf_client_manager_init(csperf_config_t *config)
         return NULL;
     }
     cli_mgr->config = config;
+    pi_dll_init(&cli_mgr->client_free_list);
 
     for (i = 0; i < config->total_clients; i++) {
 
@@ -186,6 +230,8 @@ csperf_client_manager_init(csperf_config_t *config)
                 return NULL;
             }
         }
+        pi_dll_init(&client->client_link);
+        pi_dll_insert_tail(&cli_mgr->client_free_list, &client->client_link);
         client->client_id = ++client_id_count;
         client->repeat_count = 1;
         client->cli_mgr = cli_mgr;
@@ -215,7 +261,7 @@ csperf_client_send_mark_command(csperf_client_t *client, uint8_t flags)
             command_pdu_table[CS_CMD_MARK]->message);
 
     command->blocks_to_receive = client->cli_mgr->config->total_data_blocks;
-    command->timestamp = 
+    command->timestamp =
         csperf_network_get_time(client->stats.mark_sent_time);
 
     client->transfer_flags = command->flags = flags;
@@ -418,13 +464,18 @@ csperf_client_eventcb(struct bufferevent *bev, short events, void *ctx)
 
 /* Set up client */
 static int
-csperf_client_manager_configure(csperf_client_manager_t *cli_mgr)
+csperf_client_manager_setup_clients(csperf_client_manager_t *cli_mgr, uint32_t total_clients)
 {
     csperf_client_t *client;
+    pi_dll_t *entry;
     int i;
 
-    for (i = 0; i < cli_mgr->config->total_clients; i++) {
-        client = &cli_mgr->client_table[i];
+    for (i = 0; i < total_clients; i++) {
+        if (!(entry = pi_dll_dequeue_head(&cli_mgr->client_free_list))) {
+            assert(0);
+        }
+        client = (csperf_client_t *)entry;
+
         /* Create a buffer event */
         client->buff_event = bufferevent_socket_new(cli_mgr->evbase, -1,
                 BEV_OPT_CLOSE_ON_FREE);
@@ -456,12 +507,12 @@ csperf_client_manager_configure(csperf_client_manager_t *cli_mgr)
         client->second_timer = evtimer_new(cli_mgr->evbase,
             csperf_client_timer_cb, client);
         csperf_client_timer_update(client);
-        cli_mgr->active_connections++;
+        cli_mgr->active_clients++;
         cli_mgr->stats.total_connection_attempts++;
         zlog_info(log_get_cat(), "%s: Client(%u): Connecting to server: %s:%u"
                 " Total attempts: %u\n",
                 __FUNCTION__, client->client_id, client->cli_mgr->config->server_hostname,
-                 client->cli_mgr->config->server_port, cli_mgr->active_connections);
+                 client->cli_mgr->config->server_port, cli_mgr->active_clients);
     }
     return 0;
 }
@@ -469,9 +520,9 @@ csperf_client_manager_configure(csperf_client_manager_t *cli_mgr)
 int
 csperf_client_run(csperf_config_t *config)
 {
-    int error = 0;
     csperf_client_manager_t *cli_mgr = NULL;
     struct event     *signal_event = NULL;
+    struct timeval timeout;
 
     if (!(cli_mgr = csperf_client_manager_init(config))) {
         csperf_config_cleanup(config);
@@ -487,10 +538,11 @@ csperf_client_run(csperf_config_t *config)
         return -1;
     }
 
-    if ((error = csperf_client_manager_configure(cli_mgr))) {
-        csperf_client_manager_shutdown(cli_mgr);
-        return error;
-    }
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
+    cli_mgr->second_timer = evtimer_new(cli_mgr->evbase,
+        csperf_client_manager_timer_cb, cli_mgr);
+    evtimer_add(cli_mgr->second_timer, &timeout);
 
     /* Run the event loop. Connect to the server */
     event_base_dispatch(cli_mgr->evbase);
