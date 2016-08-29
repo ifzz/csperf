@@ -24,7 +24,7 @@ csperf_config_display_long_help()
     printf(" -s                    # Run as server\n");
     printf(" -p <port>             # Server port to list to. Default 5001\n");
     printf(" -B <data block size>  # Size of the data segment. Default 1KB\n");
-    printf(" -n <num blcks>        # Number of data blocks to send. Default 1000\n");
+    printf(" -n <num blcks>        # Number of data blocks to send. Default 1\n");
     printf(" -e                    # Echo client data. Server echos client data\n");
     printf(" -C <num-clients>      # Total number of clients\n");
     printf(" -P <num-clients>      # Concurrent/Parallel clients that needs to connect to the server \n");

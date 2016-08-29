@@ -9,7 +9,7 @@ enum csperf_role {
 /* General constants */
 #define DEFAULT_DATA_BLOCKLEN (1024) 
 #define DEFAULT_SERVER_PORT   5001
-#define DEFAULT_DATA_BLOCKS   1000 
+#define DEFAULT_DATA_BLOCKS   1
 #define DEFAULT_CLIENT_OUTPUT_FILE "csperf_client_out.txt" 
 #define DEFAULT_SERVER_OUTPUT_FILE "csperf_server_out.txt" 
 
