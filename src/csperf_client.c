@@ -57,7 +57,9 @@ csperf_client_shutdown(csperf_client_t *client, int ignore)
 {
     int i;
 
-    if (!client || client->state == CLIENT_INIT) {
+    /* Don't do anything if the client is already freed. 
+     * I.E if it is queued in the free list */
+    if (!client || pi_dll_queued(&client->client_link)) {
         return;
     }
 
