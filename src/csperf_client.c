@@ -141,6 +141,7 @@ csperf_client_shutdown(csperf_client_t *client, int ignore)
 
             /* We need to repeat the test. Setting attempted_clients_per_cycle to 0 will allow
              * csperf_client_manager_timer_cb() to set up the clients again */
+            csperf_output_stats(&client->cli_mgr->stats, client->cli_mgr->output_file);
             client->cli_mgr->attempted_clients_per_cycle = 0;
             client->cli_mgr->completed_clients_per_cycle = 0;
             client->cli_mgr->active_clients_per_cycle = 0;
