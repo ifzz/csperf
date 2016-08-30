@@ -1,11 +1,11 @@
 Summary: Nixia traffic generator
 Name: csperf
-Version: 0.5
+Version: 1.0
 Packager: Nikhil <niks3089@gmail.com>
 Group: Network traffic generator 
 License: GPL
 
-%define build_timestamp %(date +"%Y%b%d%H%m%%S ")
+%define build_timestamp %(date +"%Y%b%d ")
 
 Release:  %{build_timestamp}
 
