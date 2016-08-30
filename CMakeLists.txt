@@ -54,7 +54,7 @@ FILE(GLOB csperf_headers ${PROJECT_SOURCE_DIR}/src/*.h)
 
 add_executable(csperf ${csperf_sources})
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    target_link_libraries(csperf libevent libzlog rt common)
+    target_link_libraries(csperf libevent libzlog rt m common)
 else ()
     target_link_libraries(csperf libevent libzlog common)
 endif ()

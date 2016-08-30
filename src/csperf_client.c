@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <errno.h>
 #include <arpa/inet.h>
 #include <signal.h>
@@ -14,10 +15,33 @@
 #include "csperf_common.h"
 #include "log.h"
 
-#define MAX_CLIENTS_TO_RUN 100 /* Maximum number of clients that we can connect to in one loop */ 
+#define MAX_CLIENTS_TO_RUN 100 /* Maximum number of clients that we can connect to in one loop */
 static int csperf_client_manager_setup_clients(csperf_client_manager_t *cli_mgr, uint32_t total_clients);
 static int csperf_client_manager_timer_update(csperf_client_manager_t *cli_mgr, struct timeval *timeout);
 static void csperf_client_shutdown(csperf_client_t *client, int ignore);
+
+void
+csperf_client_print_percentage_completed(csperf_client_manager_t *cli_mgr)
+{
+    static int percentage_factor = 1;
+    double threshold = ceil((double)cli_mgr->config->total_clients / 10 * percentage_factor);
+
+    if (cli_mgr->config->total_clients < 10) {
+        return;
+    }
+
+    if (cli_mgr->completed_clients_per_cycle == threshold) {
+        fprintf(stdout, "%d %% completed...\n", percentage_factor * 10);
+        fflush(stdout);
+        if (cli_mgr->completed_clients_per_cycle ==
+                cli_mgr->config->total_clients) {
+            /* Reset */
+            percentage_factor = 1;
+        } else {
+            percentage_factor++;
+        }
+    }
+}
 
 /* Shutdown and cleanup the client manager */
 static void
@@ -57,7 +81,7 @@ csperf_client_shutdown(csperf_client_t *client, int ignore)
 {
     int i;
 
-    /* Don't do anything if the client is already freed. 
+    /* Don't do anything if the client is already freed.
      * I.E if it is queued in the free list */
     if (!client || pi_dll_queued(&client->client_link)) {
         return;
@@ -100,6 +124,8 @@ csperf_client_shutdown(csperf_client_t *client, int ignore)
         return;
     }
 
+    csperf_client_print_percentage_completed(client->cli_mgr);
+
     /* Check if all the clients are done. */
     if (client->cli_mgr->completed_clients_per_cycle == client->cli_mgr->config->total_clients) {
         client->cli_mgr->repeat_count++;
@@ -113,15 +139,15 @@ csperf_client_shutdown(csperf_client_t *client, int ignore)
             timeout.tv_sec = 0;
             timeout.tv_usec = 1000;
 
-            /* We need to repeat the test. Setting attempted_clients_per_cycle to 0 will allow 
+            /* We need to repeat the test. Setting attempted_clients_per_cycle to 0 will allow
              * csperf_client_manager_timer_cb() to set up the clients again */
             client->cli_mgr->attempted_clients_per_cycle = 0;
             client->cli_mgr->completed_clients_per_cycle = 0;
             client->cli_mgr->active_clients_per_cycle = 0;
             csperf_client_manager_timer_update(client->cli_mgr, &timeout);
         }
-    } else if (client->cli_mgr->config->concurrent_clients && 
-            client->cli_mgr->attempted_clients_per_cycle < 
+    } else if (client->cli_mgr->config->concurrent_clients &&
+            client->cli_mgr->attempted_clients_per_cycle <
             client->cli_mgr->config->total_clients) {
         /* Need to start a new client */
         if ((csperf_client_manager_setup_clients(client->cli_mgr, 1))) {
@@ -187,7 +213,7 @@ csperf_client_manager_clients_to_run(csperf_client_manager_t *cli_mgr, struct ti
         }
     } else if (cli_mgr->config->concurrent_clients) {
         assert(cli_mgr->config->concurrent_clients >= cli_mgr->active_clients_per_cycle);
-        clients_pending = cli_mgr->config->concurrent_clients - cli_mgr->active_clients_per_cycle; 
+        clients_pending = cli_mgr->config->concurrent_clients - cli_mgr->active_clients_per_cycle;
         if (clients_pending < MAX_CLIENTS_TO_RUN) {
             clients_to_run = clients_pending;
         } else {
@@ -196,7 +222,7 @@ csperf_client_manager_clients_to_run(csperf_client_manager_t *cli_mgr, struct ti
             timeout->tv_usec = 1000;
         }
     } else {
-        clients_pending = cli_mgr->config->total_clients - cli_mgr->attempted_clients_per_cycle; 
+        clients_pending = cli_mgr->config->total_clients - cli_mgr->attempted_clients_per_cycle;
 
         if (clients_pending < MAX_CLIENTS_TO_RUN) {
             clients_to_run = clients_pending;
