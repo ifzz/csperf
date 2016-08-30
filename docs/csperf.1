@@ -1,36 +1,55 @@
-.TH NIXIA 1 "March 2015" ESnet "User Manuals"
+.TH CSPERF 1 "August 2016" "User Manuals"
 .SH NAME
-nixia \- perform network throughput tests for various protocols
+csperf \- Performance measurement tool which helps measuring the network capabilities 
 .SH SYNOPSIS
-.B nixia -f json_config_file [
+.B csperf [-s|-c host] [
 .I options
 .B ]
 
 .SH DESCRIPTION
-nixia is a tool for performing network throughput measurements.  It can test
-either TCP or UDP throughput. It is testing framework to add test various
-protocols 
+CSPerf actively measures the latency and RTT of the network while transmitting TCP traffic.
+Client sends a special MARK command before the data transfer which informs the server what needs to be done with the data.
+Once the transfer is completed, server responds with a MARK_RESP command which allows us to calculate the time taken by the sever to process the data.
+It also allows multiple clients to connect to the server at desired concurrency and at different rates.
+Libevent and Bufferevent is used to set up sockets and send/receive data.
 
 .SH "OPTIONS"
 .TP
-.BR -F ", " -f " \fIjson file \fR"
-read from the file and write to the network, instead
-of using random data;
-server-side: read from the network and write to the file, instead
-of throwing the data away
-
-.SH PROTOCOLS 
-1. HTTP
-.br
-2. CSPERF (Sends data and computes the performance based on markers)
+.B "-c" "hostname"
+Run as client and connect to hostname
+.TP
+.B "-s"
+Run as server
+.TP
+.B "-p" "port"
+Server port to list to. Default 5001
+.TP
+.B "-B" "data block size"
+Size of the data segment. Default 1KB
+.TP
+.B "-n" "num blcks"
+Number of data blocks to send. Default 1
+.TP
+.B "-e"
+Echo client data. Server echos client data
+.TP
+.B "-C" "num-clients"
+Total number of clients
+.TP
+.B "-P" "num-clients"
+Concurrent/Parallel clients that needs to connect to the server
+.TP
+.B "-S" "num-client"
+Number of Clients that connects with the server every second
+.TP
+.B "-r" "repeat count"
+Repeat the test these many times. Setting -1 means run forever
+.TP
+.B "-l" "logfile"
+Logfile to write to. Default writes to csperf_xxx.txt xxx = client or server
 
 .SH BUGS
-https://github.com/niks3089/nixia/issues
-
-.SH "SEE ALSO"
-doc directory for documentation
-.br
-examples directory for configuration example
+https://github.com/niks3089/csperf/issues
 
 .SH AUTHORS
 Nikhil
