@@ -24,7 +24,9 @@ csperf_server_shutdown(csperf_server_t *server)
     if (!server) {
         return;
     }
+    server->stats.end_time = csperf_network_get_time(NULL);
     csperf_output_stats(&server->stats, server->output_file);
+    csperf_stats_printf(NULL, "Detailed test summary can be found in csperf_server_out.txt file\n");
 
     while ((entry = pi_dll_dequeue_head(&server->ctx_inuse_list))) {
         cli_ctx = (csperf_client_ctx_t *) entry;
@@ -468,6 +470,7 @@ csperf_server_run(csperf_config_t *config)
         csperf_server_shutdown(server);
         return -1;
     }
+    server->stats.start_time = csperf_network_get_time(NULL);
 
     /* Run the event loop. Listen for connection */
     event_base_dispatch(server->evbase);

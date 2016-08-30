@@ -16,6 +16,8 @@ typedef struct {
 } csperf_stats_t;
 
 typedef struct {
+    uint64_t  start_time; 
+    uint64_t  end_time; 
     uint64_t  total_connection_attempts;
     uint64_t  total_connection_connected;
     uint64_t  total_connects_failed;
@@ -30,4 +32,5 @@ typedef struct {
 
 void csperf_output_stats(csperf_global_stats_t *stats, FILE *fd);
 void csperf_output_stats_to_file(csperf_stats_t *stats, FILE *fd);
+void csperf_stats_printf(FILE *fd, const char *format, ...);
 #endif /* __CS_PERF_STATS_H */

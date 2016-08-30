@@ -46,6 +46,29 @@ csperf_stats_printf_to_file(FILE *fd, const char *format, ...)
 }
 
 void
+csperf_stats_calculate_time_delta(char *buf, uint64_t end, uint64_t start)
+{
+   double delta = (double)end - (double)start;
+
+    if (delta < 1000) {
+        /* Show it in milliseconds */
+        sprintf(buf, "%.3f ms", delta);
+    } else if ((delta /= 1000) < 60) {
+        /* Show it in seconds */
+        sprintf(buf, "%.3f s", delta);
+    } else if ((delta /= 60) < 60) {
+        /* Show it in minutes */
+        sprintf(buf, "%.3f mins", delta);
+    } else if ((delta /= 60) < 24) {
+        /* Show it in hours */
+        sprintf(buf, "%.3f hours", delta);
+    } else {
+        delta /= 24;
+        sprintf(buf, "%.3f days", delta);
+    }
+}
+
+void
 csperf_output_stats_to_file(csperf_stats_t *stats, FILE *fd)
 {
     static int header_displayed = 0;
@@ -72,7 +95,7 @@ csperf_output_stats_to_file(csperf_stats_t *stats, FILE *fd)
             total_bytes_sent_str, total_bytes_recv_str,
             stats->total_blocks_sent, stats->total_blocks_received,
             stats->time_to_process_data,
-            strlen(stats->mark_received_time) ? stats->mark_sent_time : "-", 
+            strlen(stats->mark_received_time) ? stats->mark_sent_time : "-",
             strlen(stats->mark_received_time) ? stats->mark_received_time : "-",
             strlen(stats->error_message) ? stats->error_message : "");
 }
@@ -82,6 +105,7 @@ csperf_output_stats(csperf_global_stats_t *stats, FILE *fd)
 {
     char total_bytes_sent_str[50];
     char total_bytes_recv_str[50];
+    char time_taken[50] = { 0 };
 
     if (!stats) {
         return;
@@ -91,6 +115,7 @@ csperf_output_stats(csperf_global_stats_t *stats, FILE *fd)
             stats->total_bytes_sent);
     csperf_common_calculate_size(total_bytes_recv_str,
             stats->total_bytes_received);
+    csperf_stats_calculate_time_delta(time_taken, stats->end_time, stats->start_time);
 
     csperf_stats_printf(fd, "Test summary\n");
     csperf_stats_printf(fd, "-------------\n");
@@ -103,7 +128,6 @@ csperf_output_stats(csperf_global_stats_t *stats, FILE *fd)
     csperf_stats_printf(fd, "Total blocks sent: %"PRIu64"\n", stats->total_blocks_sent);
     csperf_stats_printf(fd, "Total blocks received: %"PRIu64"\n", stats->total_blocks_received);
     csperf_stats_printf(fd, "Total commands sent: %"PRIu64"\n", stats->total_commands_sent);
-    csperf_stats_printf(fd, "Total commands received: %"PRIu64"\n\n", stats->total_commands_sent);
-
-    csperf_stats_printf(NULL, "Detailed test summary can be found in csperf_*_out.txt file\n");
+    csperf_stats_printf(fd, "Total commands received: %"PRIu64"\n", stats->total_commands_sent);
+    csperf_stats_printf(fd, "Total time taken: %s\n\n", time_taken);
 }
