@@ -666,6 +666,8 @@ csperf_client_run(csperf_config_t *config)
     cli_mgr->second_timer = evtimer_new(cli_mgr->evbase,
         csperf_client_manager_timer_cb, cli_mgr);
     evtimer_add(cli_mgr->second_timer, &timeout);
+    fprintf(stdout, "0%% completed...\n");
+    fflush(stdout);
 
     /* Run the event loop. Connect to the server */
     event_base_dispatch(cli_mgr->evbase);
