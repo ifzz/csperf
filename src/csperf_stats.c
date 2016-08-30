@@ -7,7 +7,7 @@
 #include "csperf_common.h"
 
 const char header[] =
-"Cycle    Bytes_sent    Bytes_Received    Blocks_sent    Blocks_received    "
+"Client   Bytes_sent    Bytes_Received    Blocks_sent    Blocks_received    "
 "Time_to_process(ms)    Mark_sent_time    Mark_received_time        Error\n";
 
 const char seperator_line[] =
@@ -49,7 +49,7 @@ void
 csperf_output_stats_to_file(csperf_stats_t *stats, FILE *fd)
 {
     static int header_displayed = 0;
-    static int cycle = 0;
+    static int client = 0;
     char total_bytes_sent_str[50];
     char total_bytes_recv_str[50];
 
@@ -68,7 +68,7 @@ csperf_output_stats_to_file(csperf_stats_t *stats, FILE *fd)
             stats->total_bytes_received);
 
     csperf_stats_printf_to_file(fd, "%3d   %15s    %10s    %10"PRIu64"    %10"PRIu64"    %10"PRIu64"       %10s    "
-            "%10s       %10s\n\n", ++cycle,
+            "%10s       %10s\n\n", ++client,
             total_bytes_sent_str, total_bytes_recv_str,
             stats->total_blocks_sent, stats->total_blocks_received,
             stats->time_to_process_data,
