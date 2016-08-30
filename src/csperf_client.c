@@ -120,7 +120,9 @@ csperf_client_shutdown(csperf_client_t *client, int ignore)
             client->cli_mgr->active_clients_per_cycle = 0;
             csperf_client_manager_timer_update(client->cli_mgr, &timeout);
         }
-    } else if (client->cli_mgr->config->concurrent_clients) {
+    } else if (client->cli_mgr->config->concurrent_clients && 
+            client->cli_mgr->attempted_clients_per_cycle < 
+            client->cli_mgr->config->total_clients) {
         /* Need to start a new client */
         if ((csperf_client_manager_setup_clients(client->cli_mgr, 1))) {
             csperf_client_manager_shutdown(client->cli_mgr);
