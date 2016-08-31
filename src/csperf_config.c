@@ -66,12 +66,6 @@ csperf_config_validate(csperf_config_t *config)
             return -1;
         }
 
-        /* Validate port */
-        if (config->server_port > 65535) {
-            fprintf(stdout, "Invalid port number\n");
-            return -1;
-        }
-
         /* Validate total number of clients */
         if (config->total_clients < config->concurrent_clients) {
             fprintf(stdout, "Total number of clients should be greater or equal to concurrent clients\n");
