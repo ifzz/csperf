@@ -41,9 +41,13 @@ csperf_server_shutdown(csperf_server_t *server)
     if (!server) {
         return;
     }
-    server->stats.end_time = csperf_network_get_time(NULL);
-    csperf_output_stats(&server->stats, server->output_file);
-    csperf_stats_printf(NULL, "Detailed test summary can be found in csperf_server_out.txt file\n");
+
+    if (!server->server_failed) {
+        /* Don't show the summary stats if the server failed to configure */
+        server->stats.end_time = csperf_network_get_time(NULL);
+        csperf_output_stats(&server->stats, server->output_file);
+        csperf_stats_printf(NULL, "Detailed test summary can be found in csperf_server_out.txt file\n");
+    }
 
     while ((entry = pi_dll_dequeue_head(&server->ctx_inuse_list))) {
         cli_ctx = (csperf_client_ctx_t *) entry;
@@ -245,7 +249,7 @@ csperf_server_send_mark_resp_command(csperf_client_ctx_t *cli_ctx, uint8_t flags
             command_pdu_table[CS_CMD_MARK_RESP]->message);
 
     command->blocks_to_receive = cli_ctx->server->config->total_data_blocks;
-    command->timestamp = 
+    command->timestamp =
         cli_ctx->client_last_received_timestamp;
     cli_ctx->transfer_flags = command->flags = flags;
     cli_ctx->stats.total_commands_sent++;
@@ -471,6 +475,7 @@ csperf_server_run(csperf_config_t *config)
         zlog_warn(log_get_cat(), "Failed to init server\n");
         return -1;
     }
+    server->stats.start_time = csperf_network_get_time(NULL);
 
     /* Setup signal handler for SIGINT */
     signal_event = evsignal_new(server->evbase, SIGINT,
@@ -479,15 +484,16 @@ csperf_server_run(csperf_config_t *config)
     if ((error = csperf_server_configure(server))) {
         zlog_warn(log_get_cat(), "Failed to configure server: %s\n", strerror(errno));
         fprintf(stderr, "Failed to configure server: %s\n", strerror(errno));
+        server->server_failed = 1;
         csperf_server_shutdown(server);
         return error;
     }
 
     if (!signal_event || ((event_add(signal_event, NULL) < 0))) {
+        server->server_failed = 1;
         csperf_server_shutdown(server);
         return -1;
     }
-    server->stats.start_time = csperf_network_get_time(NULL);
 
     /* Run the event loop. Listen for connection */
     event_base_dispatch(server->evbase);

@@ -29,6 +29,8 @@
 typedef struct csperf_client_ctx_s csperf_client_ctx_t;
 
 typedef struct csperf_server_s {
+    uint8_t               server_failed:1,
+                          reserved:7;
     FILE                  *output_file;
     struct event_base     *evbase;
     csperf_config_t       *config;
