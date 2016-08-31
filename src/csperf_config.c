@@ -21,11 +21,18 @@
 #include <stdio.h>
 #include <getopt.h>
 #include <assert.h>
+#include <sys/time.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/resource.h>
 
 #include "csperf_config.h"
 #include "csperf_defaults.h"
 #include "csperf_network.h"
 #include "csperf_common.h"
+
+#define MAX_OPEN_DESCRIPTORS 20000
 
 void
 csperf_config_display_short_help()
@@ -59,6 +66,47 @@ csperf_config_validate(csperf_config_t *config)
     }
 
     if (config->role == CS_CLIENT) {
+        struct rlimit file_limit;
+        int ret = getrlimit(RLIMIT_NOFILE, &file_limit);
+
+        if (!ret && !config->concurrent_clients &&
+                file_limit.rlim_cur < config->total_clients) {
+            fprintf(stdout, "Error: Total clients are more than the"
+                    " number of maximimum open descriptors: %d.\nIncrease the "
+                    "limit by running 'ulimit -n %u'\n",
+                    (int)file_limit.rlim_cur,  MAX_OPEN_DESCRIPTORS);
+            return -1;
+        }
+
+        if (!ret && file_limit.rlim_cur < config->concurrent_clients) {
+            fprintf(stdout, "Error: Concurrent clients are more than the"
+                    " number of maximimum open descriptors: %d.\nIncrease the "
+                    "limit by running 'ulimit -n %u'\n",
+                    (int)file_limit.rlim_cur,  MAX_OPEN_DESCRIPTORS);
+            return -1;
+        }
+
+        /* Warn if the open files are less than twice the client limit */
+        if (!ret && !config->concurrent_clients &&
+                file_limit.rlim_cur < config->total_clients * 2) {
+            fprintf(stdout, "Warn: The current limit of open descriptors: %d "
+                    " are more than the total clients to run.\nStill, due to time "
+                    "waiting of TCP sockets, the number of sockets might not be "
+                    " enough. Consider increasing the limit by running 'ulimit -n %u'\n"
+                    "Enter any key to continue. Press Ctrl+c to stop\n",
+                    (int)file_limit.rlim_cur,  MAX_OPEN_DESCRIPTORS);
+            getchar();
+        }
+
+        if (!ret && file_limit.rlim_cur < config->concurrent_clients * 2) {
+            fprintf(stdout, "Warn: The current limit of open descriptors: %d "
+                    " are more than the concurrent clients to run.\n Still, due to time "
+                    "waiting of TCP sockets, the number of sockets might not be "
+                    " enough. Consider increasing the limit by running 'ulimit -n %u'\n"
+                    "Enter any key to continue. Press Ctrl+c to stop\n",
+                    (int)file_limit.rlim_cur,  MAX_OPEN_DESCRIPTORS);
+            getchar();
+        }
 
         /* Validate total number of clients */
         if (config->total_clients < config->concurrent_clients) {
