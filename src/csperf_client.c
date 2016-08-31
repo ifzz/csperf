@@ -150,7 +150,8 @@ csperf_client_shutdown(csperf_client_t *client, int ignore)
         client->cli_mgr->repeat_count++;
 
         /* Check if we need to repeat the test */
-        if (client->cli_mgr->repeat_count >= client->cli_mgr->config->repeat_count) {
+        if (client->cli_mgr->config->repeat_count > 0 &&
+                client->cli_mgr->repeat_count >= client->cli_mgr->config->repeat_count) {
             csperf_client_manager_shutdown(client->cli_mgr);
         } else {
             struct timeval timeout;
@@ -659,7 +660,7 @@ csperf_client_run(csperf_config_t *config)
         csperf_client_manager_shutdown(cli_mgr);
         return -1;
     }
-    cli_mgr->stats.start_time = csperf_network_get_time(NULL); 
+    cli_mgr->stats.start_time = csperf_network_get_time(NULL);
 
     timeout.tv_sec = 0;
     timeout.tv_usec = 0;
