@@ -26,6 +26,5 @@ release: all
 		cp $(TOPRPMDIR)/RPMS/*/*.rpm $(TOPDIR)/build/
 
 clean:
-	rm -rf build/src 
 	rm -rf build; rm -rf core* 
 	rm -rf /tmp/csperf_info.log
