@@ -182,7 +182,9 @@ csperf_client_shutdown(csperf_client_t *client, int ignore)
 static int
 csperf_client_manager_timer_update(csperf_client_manager_t *cli_mgr, struct timeval *timeout)
 {
-    evtimer_add(cli_mgr->second_timer, timeout);
+    if (cli_mgr->second_timer) {
+        evtimer_add(cli_mgr->second_timer, timeout);
+    }
     return 0;
 }
 
@@ -543,10 +545,12 @@ csperf_client_eventcb(struct bufferevent *bev, short events, void *ctx)
             finished = 1;
         }
         if (events & BEV_EVENT_ERROR) {
-            zlog_info(log_get_cat(), "%s: Client(%u): Socket error: %s\n",
-                    __FUNCTION__, client->client_id,
-                    evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
-            strcpy(client->stats.error_message, evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
+            if (EVUTIL_SOCKET_ERROR() != 0) {
+                zlog_info(log_get_cat(), "%s: Client(%u): Socket error: %s\n",
+                        __FUNCTION__, client->client_id,
+                        evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
+                strcpy(client->stats.error_message, evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
+            }
             if (client->state >= CLIENT_CONNECTED) {
                 cli_mgr->stats.total_connection_errors++;
             } else {
@@ -625,13 +629,22 @@ csperf_client_manager_setup_clients(csperf_client_manager_t *cli_mgr, uint32_t t
             return -1;
         }
 
-        client->second_timer = evtimer_new(cli_mgr->evbase,
-            csperf_client_timer_cb, client);
-        csperf_client_timer_update(client);
         cli_mgr->attempted_clients_per_cycle++;
         cli_mgr->active_clients_per_cycle++;
         cli_mgr->attempted_clients_per_second++;
         cli_mgr->stats.total_connection_attempts++;
+
+        /* Check if the connect failed. If it has, client would be in free list */
+        if (pi_dll_queued(&client->client_link)) {
+            zlog_info(log_get_cat(), "%s: Client(%u): Connect failed",
+                    __FUNCTION__, client->client_id);
+            return 0;
+        }
+
+        client->second_timer = evtimer_new(cli_mgr->evbase,
+            csperf_client_timer_cb, client);
+        csperf_client_timer_update(client);
+
         zlog_info(log_get_cat(), "%s: Client(%u): Connecting to server: %s:%u"
                 " Total attempts: %"PRIu64"\n",
                 __FUNCTION__, client->client_id, client->cli_mgr->config->server_hostname,

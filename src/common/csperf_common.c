@@ -50,16 +50,3 @@ csperf_common_calculate_size(char *result, uint64_t size)
     strcpy(result, "0 B");
     return;
 }
-
-int
-csperf_common_is_valid_ip(char *address)
-{
-    struct sockaddr_in sa;
-    return inet_pton(AF_INET, address, &(sa.sin_addr));
-}
-
-int
-csperf_common_is_valid_hostname(char *hostname)
-{
-    return 1;
-}

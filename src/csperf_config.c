@@ -59,12 +59,6 @@ csperf_config_validate(csperf_config_t *config)
     }
 
     if (config->role == CS_CLIENT) {
-        /* Validate hostname */
-        if (!csperf_common_is_valid_ip(config->server_hostname) &&
-            !csperf_common_is_valid_hostname(config->server_hostname)) {
-            fprintf(stdout, "Invalid ip address or hostname\n");
-            return -1;
-        }
 
         /* Validate total number of clients */
         if (config->total_clients < config->concurrent_clients) {
