@@ -1,6 +1,7 @@
 build
-csperf_*
 packages
 *cscope*
 src/*cscope*
 core*
+tags
+*txt

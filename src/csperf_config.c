@@ -25,6 +25,7 @@
 #include "csperf_config.h"
 #include "csperf_defaults.h"
 #include "csperf_network.h"
+#include "csperf_common.h"
 
 void
 csperf_config_display_short_help()
@@ -37,9 +38,9 @@ void
 csperf_config_display_long_help()
 {
     printf("Usage: csperf [-s|-c host] [options]\n");
-    printf(" -c <hostname>         # Run as client and connect to hostname\n");
+    printf(" -c <ip/hostname>      # Run as client and connect to ip address/hostname\n");
     printf(" -s                    # Run as server\n");
-    printf(" -p <port>             # Server port to list to. Default 5001\n");
+    printf(" -p <port>             # Server port to listen and client to connect. Default 5001\n");
     printf(" -B <data block size>  # Size of the data segment. Default 1KB\n");
     printf(" -n <num blcks>        # Number of data blocks to send. Default 1\n");
     printf(" -e                    # Echo client data. Server echos client data\n");
@@ -48,6 +49,57 @@ csperf_config_display_long_help()
     printf(" -S <num-clients>      # Number of Clients that connects with the server every second\n");
     printf(" -r <repeat count>     # Repeat the test these many times. Setting -1 means run forever\n");
     printf(" -l <logfile>          # Logfile to write to. Default writes to csperf_xxx.txt xxx = client or server\n");
+}
+
+int
+csperf_config_validate(csperf_config_t *config)
+{
+    if (!config) {
+        return -1;
+    }
+
+    if (config->role == CS_CLIENT) {
+        /* Validate hostname */
+        if (!csperf_common_is_valid_ip(config->server_hostname) && 
+            !csperf_common_is_valid_hostname(config->server_hostname)) {
+            fprintf(stdout, "Invalid ip address or hostname\n");
+            return -1;
+        }
+
+        /* Validate port */
+        if (config->server_port < 0 || config->server_port > 65535) {
+            fprintf(stdout, "Invalid port number\n");
+            return -1;
+        }
+
+        /* Validate total number of clients */
+        if (config->total_clients < config->concurrent_clients) {
+            fprintf(stdout, "Total number of clients should be greater or equal to concurrent clients\n");
+            return -1;
+        }
+        if (config->total_clients < config->clients_per_sec) {
+            fprintf(stdout, "Total number of clients should be greater or equal to clients per second\n");
+            return -1;
+        }
+
+        /* Validate concurrent clients and clients per second */
+        if (config->concurrent_clients && config->clients_per_sec) {
+            fprintf(stdout, "Either concuurent clients or clients per second can be specified. Not both.\n");
+            return -1;
+        }
+
+        /* Validate repeat count */
+        if (!config->repeat_count) {
+            fprintf(stdout, "Repeat count cannot be 0\n");
+            return -1;
+        }
+
+    } else if (config->role == CS_SERVER) {
+    } else {
+        /* Invalid role */
+        return -1;
+    }
+    return 0;
 }
 
 int
@@ -155,6 +207,11 @@ csperf_config_parse_arguments(csperf_config_t *config,
             return -1;
         }
     }
+
+    if (csperf_config_validate(config)) {
+        return -1;
+    }
+
     return 0;
 }
 
