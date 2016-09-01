@@ -114,7 +114,7 @@ csperf_config_validate(csperf_config_t *config)
             fprintf(stdout, "Warn: The current limit of open descriptors: %d "
                     " are more than the total clients to run.\nStill, due to time "
                     "waiting of TCP sockets, the number of sockets might not be "
-                    " enough. Consider increasing the limit by running 'ulimit -n %u'\n"
+                    "enough. Consider increasing the limit by running 'ulimit -n %u'\n"
                     "Enter any key to continue. Press Ctrl+c to stop\n",
                     (int)file_limit.rlim_cur,  MAX_OPEN_DESCRIPTORS);
             getchar();
@@ -122,9 +122,9 @@ csperf_config_validate(csperf_config_t *config)
 
         if (!ret && file_limit.rlim_cur < config->concurrent_clients * 2) {
             fprintf(stdout, "Warn: The current limit of open descriptors: %d "
-                    " are more than the concurrent clients to run.\n Still, due to time "
+                    " are more than the concurrent clients to run.\nStill, due to time "
                     "waiting of TCP sockets, the number of sockets might not be "
-                    " enough. Consider increasing the limit by running 'ulimit -n %u'\n"
+                    "enough. Consider increasing the limit by running 'ulimit -n %u'\n"
                     "Enter any key to continue. Press Ctrl+c to stop\n",
                     (int)file_limit.rlim_cur,  MAX_OPEN_DESCRIPTORS);
             getchar();

@@ -579,6 +579,11 @@ csperf_client_manager_setup_clients(csperf_client_manager_t *cli_mgr, uint32_t t
         }
         client = (csperf_client_t *)entry;
 
+        cli_mgr->attempted_clients_per_cycle++;
+        cli_mgr->active_clients_per_cycle++;
+        cli_mgr->attempted_clients_per_second++;
+        cli_mgr->stats.total_connection_attempts++;
+
 
         /* Create data pdu. We do this once and keep sending the
          * same data over and over again */
@@ -629,11 +634,6 @@ csperf_client_manager_setup_clients(csperf_client_manager_t *cli_mgr, uint32_t t
             zlog_error(log_get_cat(), "Connect error. Stopping test\n");
             return -1;
         }
-
-        cli_mgr->attempted_clients_per_cycle++;
-        cli_mgr->active_clients_per_cycle++;
-        cli_mgr->attempted_clients_per_second++;
-        cli_mgr->stats.total_connection_attempts++;
 
         /* Check if the connect failed. If it has, client would be in free list */
         if (pi_dll_queued(&client->client_link)) {
