@@ -70,14 +70,15 @@ csperf_client_manager_shutdown(csperf_client_manager_t *cli_mgr)
     if (!cli_mgr) {
         return;
     }
-    cli_mgr->stats.end_time = csperf_network_get_time(NULL);
-    csperf_output_stats(&cli_mgr->stats, cli_mgr->output_file);
-    csperf_stats_printf(NULL, "Detailed test summary can be found in csperf_client_out.txt file\n");
 
     for (i = 0; i < cli_mgr->config->total_clients; i++) {
         client = &cli_mgr->client_table[i];
         csperf_client_shutdown(client, 1);
     }
+
+    cli_mgr->stats.end_time = csperf_network_get_time(NULL);
+    csperf_output_stats(&cli_mgr->stats, cli_mgr->output_file);
+    csperf_stats_printf(NULL, "Detailed test summary can be found in csperf_client_out.txt file\n");
 
     if (cli_mgr->output_file) {
         fclose(cli_mgr->output_file);
@@ -93,6 +94,7 @@ csperf_client_manager_shutdown(csperf_client_manager_t *cli_mgr)
     free(cli_mgr);
     zlog_info(log_get_cat(), "%s: Successfully shutdown client manager\n", __FUNCTION__);
     zlog_fini();
+    exit(0);
 }
 
 static void
@@ -278,7 +280,6 @@ csperf_client_manager_timer_cb(int fd, short kind, void *userp)
                 __FUNCTION__, clients_to_run);
         if ((csperf_client_manager_setup_clients(cli_mgr, clients_to_run))) {
             csperf_client_manager_shutdown(cli_mgr);
-            return;
         }
     }
     csperf_client_manager_timer_update(cli_mgr, &timeout);
@@ -671,7 +672,6 @@ csperf_client_run(csperf_config_t *config)
             csperf_client_signal_cb, cli_mgr);
     if (!signal_event || ((event_add(signal_event, NULL) < 0))) {
         csperf_client_manager_shutdown(cli_mgr);
-        return -1;
     }
     cli_mgr->stats.start_time = csperf_network_get_time(NULL);
 

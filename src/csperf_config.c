@@ -69,6 +69,28 @@ csperf_config_validate(csperf_config_t *config)
         struct rlimit file_limit;
         int ret = getrlimit(RLIMIT_NOFILE, &file_limit);
 
+        /* Validate total number of clients */
+        if (config->total_clients < config->concurrent_clients) {
+            fprintf(stdout, "Total number of clients should be greater or equal to concurrent clients\n");
+            return -1;
+        }
+        if (config->total_clients < config->clients_per_sec) {
+            fprintf(stdout, "Total number of clients should be greater or equal to clients per second\n");
+            return -1;
+        }
+
+        /* Validate concurrent clients and clients per second */
+        if (config->concurrent_clients && config->clients_per_sec) {
+            fprintf(stdout, "Either concuurent clients or clients per second can be specified. Not both.\n");
+            return -1;
+        }
+
+        /* Validate repeat count */
+        if (!config->repeat_count) {
+            fprintf(stdout, "Repeat count cannot be 0\n");
+            return -1;
+        }
+
         if (!ret && !config->concurrent_clients &&
                 file_limit.rlim_cur < config->total_clients) {
             fprintf(stdout, "Error: Total clients are more than the"
@@ -106,28 +128,6 @@ csperf_config_validate(csperf_config_t *config)
                     "Enter any key to continue. Press Ctrl+c to stop\n",
                     (int)file_limit.rlim_cur,  MAX_OPEN_DESCRIPTORS);
             getchar();
-        }
-
-        /* Validate total number of clients */
-        if (config->total_clients < config->concurrent_clients) {
-            fprintf(stdout, "Total number of clients should be greater or equal to concurrent clients\n");
-            return -1;
-        }
-        if (config->total_clients < config->clients_per_sec) {
-            fprintf(stdout, "Total number of clients should be greater or equal to clients per second\n");
-            return -1;
-        }
-
-        /* Validate concurrent clients and clients per second */
-        if (config->concurrent_clients && config->clients_per_sec) {
-            fprintf(stdout, "Either concuurent clients or clients per second can be specified. Not both.\n");
-            return -1;
-        }
-
-        /* Validate repeat count */
-        if (!config->repeat_count) {
-            fprintf(stdout, "Repeat count cannot be 0\n");
-            return -1;
         }
 
     } else if (config->role == CS_SERVER) {
