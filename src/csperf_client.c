@@ -389,8 +389,8 @@ csperf_client_send_data(csperf_client_t *client)
         return 0;
     }
 
-    if (client->stats.total_blocks_sent >=
-            client->cli_mgr->config->total_data_blocks) {
+    if (client->cli_mgr->config->total_data_blocks > 0 &&
+            client->stats.total_blocks_sent >= client->cli_mgr->config->total_data_blocks) {
         return 0;
     }
 
