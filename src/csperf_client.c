@@ -170,7 +170,7 @@ csperf_client_shutdown(csperf_client_t *client, int ignore)
             csperf_client_manager_timer_update(client->cli_mgr, &timeout);
             csperf_output_stats(&client->cli_mgr->stats, client->cli_mgr->output_file);
         }
-    } 
+    }
 }
 
 /* Update Client Manager timer. It ticks every 1 second */
@@ -239,6 +239,11 @@ csperf_client_manager_clients_to_run(csperf_client_manager_t *cli_mgr, struct ti
             clients_to_run = MAX_CLIENTS_TO_RUN;
             timeout->tv_sec = 0;
             timeout->tv_usec = 5;
+        }
+
+        if (clients_to_run >
+            (cli_mgr->config->total_clients - cli_mgr->attempted_clients_per_cycle)) {
+            clients_to_run = cli_mgr->config->total_clients - cli_mgr->attempted_clients_per_cycle;
         }
     } else {
         clients_pending = cli_mgr->config->total_clients - cli_mgr->attempted_clients_per_cycle;
