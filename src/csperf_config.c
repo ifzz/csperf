@@ -50,6 +50,7 @@ csperf_config_display_long_help()
     printf(" -p <port>             # Server port to listen and client to connect. Default 5001\n");
     printf(" -B <data block size>  # Size of the data segment. Default 1KB\n");
     printf(" -n <num blcks>        # Number of data blocks to send. Default 1\n");
+    printf(" -t <seconds>          # Number of seconds the client will be active\n");
     printf(" -e                    # Echo client data. Server echos client data\n");
     printf(" -C <num-clients>      # Total number of clients\n");
     printf(" -P <num-clients>      # Concurrent/Parallel clients that needs to connect to the server \n");
@@ -160,15 +161,15 @@ csperf_config_parse_arguments(csperf_config_t *config,
         {"repeat", required_argument, NULL, 'r'},
         {"logfile", required_argument, NULL, 'l'},
         {"markinterval", required_argument, NULL, 'm'},
-#if 0
         {"time", required_argument, NULL, 't'},
+#if 0
         {"bytes", required_argument, NULL, 'b'},
 #endif
         {"help", no_argument, NULL, 'h'},
         {NULL, 0, NULL, 0}
     };
 
-    while((rget_opt = getopt_long(argc, argv, "c:sp:C:B:P:S:n:em:r:l:h",
+    while((rget_opt = getopt_long(argc, argv, "c:sp:C:B:P:S:n:em:r:l:t:h",
                     longopts, NULL)) != -1) {
         switch (rget_opt) {
         case 'c':
@@ -222,14 +223,14 @@ csperf_config_parse_arguments(csperf_config_t *config,
         case 'S':
             config->clients_per_sec = atoi(optarg);
             break;
-#if 0
         case 't':
             config->client_runtime = atoi(optarg);
-            if (config->client_runtime > MAX_CLIENT_RUNTIME) {
-                printf("Exceeded max runtime\n");
+            if (config->client_runtime < 1) {
+                printf("Client run time cannot be less than one\n");
                 return -1;
             }
             break;
+#if 0
         case 'b':
             /* Use iperf's way of setting data. Look '-n' */
             config->data_size = atoi(optarg);
@@ -263,6 +264,7 @@ csperf_config_set_defaults(csperf_config_t *config)
     config->total_clients = 1;
     config->clients_per_sec = 0;
     config->concurrent_clients = 0;
+    config->client_runtime = 0;
 
     config->client_output_file = strdup(DEFAULT_CLIENT_OUTPUT_FILE);
     config->server_output_file = strdup(DEFAULT_SERVER_OUTPUT_FILE);

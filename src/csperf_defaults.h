@@ -30,7 +30,4 @@ enum csperf_role {
 #define DEFAULT_CLIENT_OUTPUT_FILE "csperf_client_out.txt" 
 #define DEFAULT_SERVER_OUTPUT_FILE "csperf_server_out.txt" 
 
-/* Max constants */
-#define MAX_CLIENT_RUNTIME 6000 
-
 #endif /* __CS_PERF_DEFAULTS_H */

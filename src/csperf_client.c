@@ -288,18 +288,7 @@ csperf_client_manager_timer_cb(int fd, short kind, void *userp)
 static void
 csperf_client_timer_cb(int fd, short kind, void *userp)
 {
-    static uint16_t timer = 0;
-
     csperf_client_t *client = (csperf_client_t *)userp;
-
-    /* Check if we need to stop */
-    if ((client->cli_mgr->config->client_runtime) &&
-            (++timer >= client->cli_mgr->config->client_runtime)) {
-        zlog_info(log_get_cat(), "%s: Client(%u): Timeout\n",
-                __FUNCTION__, client->client_id);
-        csperf_client_shutdown(client, 0);
-        return;
-    }
 
     /* TODO: Display current stats */
     csperf_client_timer_update(client);
@@ -370,6 +359,7 @@ csperf_client_send_mark_command(csperf_client_t *client, uint8_t flags)
             command_pdu_table[CS_CMD_MARK]->message);
 
     command->blocks_to_receive = client->cli_mgr->config->total_data_blocks;
+    command->time_to_run = client->cli_mgr->config->client_runtime;
     command->timestamp =
         csperf_network_get_time(client->stats.mark_sent_time);
 
@@ -395,7 +385,8 @@ csperf_client_send_data(csperf_client_t *client)
     }
 
     if (client->cli_mgr->config->total_data_blocks > 0 &&
-            client->stats.total_blocks_sent >= client->cli_mgr->config->total_data_blocks) {
+        client->stats.total_blocks_sent >=
+        client->cli_mgr->config->total_data_blocks) {
         return 0;
     }
 
