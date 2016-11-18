@@ -30,6 +30,9 @@
 #include "csperf_network.h"
 #include "log.h"
 
+static int csperf_server_send_mark_resp_command(csperf_client_ctx_t *cli_ctx,
+        uint8_t flags);
+
 /* Shutdown and close the client */
 static void
 csperf_server_shutdown(csperf_server_t *server)
@@ -149,9 +152,17 @@ static void
 csperf_server_timer_cb(int fd, short kind, void *userp)
 {
     csperf_client_ctx_t *cli_ctx = (csperf_client_ctx_t *)userp;
+    cli_ctx->client_run_time++;
 
     /* Display current stats */
     csperf_server_timer_update(cli_ctx);
+
+    /* Check if the time is done for this client. If it is,
+     * send the mark resp command */
+    if ((cli_ctx->server->config->client_runtime) && 
+        (cli_ctx->client_run_time >= cli_ctx->server->config->client_runtime)) {
+        csperf_server_send_mark_resp_command(cli_ctx, 0);
+    }
 }
 
 /* Got SIGINT */
@@ -292,9 +303,11 @@ csperf_server_process_data(csperf_client_ctx_t *cli_ctx, struct evbuffer *buf,
         evbuffer_drain(buf, len);
     }
 
-    /* Thats the datablocks we receive. Send mark resp command */
-    if (cli_ctx->stats.total_blocks_received >=
-            cli_ctx->server->config->total_data_blocks) {
+    /* Check if we are done receiving data from the client. 
+     * If we are, send mark resp command */ 
+    if ((!cli_ctx->server->config->client_runtime) &&
+            (cli_ctx->stats.total_blocks_received >=
+            cli_ctx->server->config->total_data_blocks)) {
         csperf_server_send_mark_resp_command(cli_ctx, 0);
     }
     return 0;
@@ -317,6 +330,7 @@ csperf_server_process_command(csperf_client_ctx_t *cli_ctx, struct evbuffer *buf
         cli_ctx->transfer_flags = command.flags;
         cli_ctx->server->config->total_data_blocks = command.blocks_to_receive;
         cli_ctx->client_last_received_timestamp = command.timestamp;
+        cli_ctx->server->config->client_runtime = command.time_to_run;
         cli_ctx->client_last_received_local_time =
             csperf_network_get_time(cli_ctx->stats.mark_received_time);
         break;
