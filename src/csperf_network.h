@@ -68,10 +68,9 @@ typedef struct
 {
     uint64_t       timestamp;
     uint32_t       blocks_to_receive;
-    uint32_t       time_to_run;
+    uint16_t       time_to_run;
     uint8_t        command_type;
     uint8_t        flags;
-    uint8_t        resvrd[2];
 } csperf_command_pdu;
 
 int csperf_network_get_pdu_type(struct evbuffer *buf, uint32_t *len);

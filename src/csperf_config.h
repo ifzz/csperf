@@ -26,7 +26,7 @@ typedef struct csperf_config_s {
     uint8_t      mark_interval_percentage;
     uint16_t     server_port;
     uint16_t     mark_interval;
-    uint32_t     client_runtime;    /* Total duration of the test.*/
+    uint16_t     client_runtime;    /* Total duration of the test.*/
     uint32_t     data_block_size;   /* Block size of each data segment */
     int32_t      total_data_blocks; /* Total blocks to be sent */
     uint32_t     total_clients;     /* Total number of clients that need to connect to the server */
