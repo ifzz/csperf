@@ -22,10 +22,10 @@ git clone https://github.com/niks3089/csperf.git
 Building Csperf
 ----------------
 ### Prerequisites: ###
-CMAKE (Version > 2.8)
+CMAKE (Version >= 2.8)
 
 ### Building ###
-make; sudo make install
+make && sudo make install
 
 Using Csperf
 -------------
