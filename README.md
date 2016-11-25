@@ -22,21 +22,21 @@ git clone https://github.com/niks3089/csperf.git
 Building Csperf
 ----------------
 ### Prerequisites: ###
-CMAKE (Version > 2.8)
+CMAKE (Version >= 2.8)
 
 ### Building ###
-make; sudo make install
+make && sudo make install
 
 Using Csperf
 -------------
 ```
-csperf [-s|-c host] [options]
-
- -c <hostname>         # Run as client and connect to hostname
+Usage: csperf [-s|-c host] [options]
+ -c <ip/hostname>      # Run as client and connect to ip address/hostname
  -s                    # Run as server
- -p <port>             # Server port to list to. Default 5001
+ -p <port>             # Server port to listen and client to connect. Default 5001
  -B <data block size>  # Size of the data segment. Default 1KB
  -n <num blcks>        # Number of data blocks to send. Default 1
+ -t <seconds>          # Number of seconds the client will be active
  -e                    # Echo client data. Server echos client data
  -C <num-clients>      # Total number of clients
  -P <num-clients>      # Concurrent/Parallel clients that needs to connect to the server
